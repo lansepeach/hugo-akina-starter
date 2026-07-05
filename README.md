@@ -237,6 +237,48 @@ comment_count = 0
 +++
 ```
 
+front matter 是文章顶部的元数据，控制标题、发布时间、链接、分类、标签、首页卡片和评论数量等。上面每个字段含义如下：
+
+| 字段 | 类型 | 是否常用 | 作用 |
+| --- | --- | --- | --- |
+| `title` | 字符串 | 必填 | 文章标题。会显示在首页卡片、文章页标题、归档页、网站地图、RSS 和浏览器标题里。 |
+| `date` | 时间 | 必填 | 文章发布时间。首页排序、归档年份月份、文章页日期都依赖它。建议使用带时区的格式，例如 `2024-01-05T10:00:00+08:00`。 |
+| `draft` | 布尔值 | 必填 | 是否草稿。`true` 表示默认构建不会发布；`false` 表示正式发布。使用 `hugo server -D` 可以预览草稿。 |
+| `slug` | 字符串 | 推荐 | 文章 URL 的短名。配合 `hugo.toml` 里的 `posts = "/archives/:slug/"` 生成最终链接。 |
+| `categories` | 字符串数组 | 推荐 | 分类。首页卡片会显示第一个分类，分类页也会按这里生成。通常一篇文章放 1 个主分类即可。 |
+| `tags` | 字符串数组 | 可选 | 标签。用于标签页和文章归类，可以写多个。 |
+| `views` | 数字 | 可选 | 阅读量展示用。静态站不会自动增加阅读量，这里只是显示初始数字或迁移旧站阅读量。 |
+| `comment_count` | 数字 | 可选 | 评论数量展示用。旧评论静态导入时可以填真实数量；新文章可以填 `0`。 |
+
+常用可选字段：
+
+| 字段 | 类型 | 作用 |
+| --- | --- | --- |
+| `featured_image` | 字符串 | 文章特色图。文章页头图、上一篇/下一篇背景图会优先使用它。留空时使用 `hugo.toml` 的 `params.heroImage` 或随机图。 |
+| `excerpt` | 字符串 | 首页卡片摘要。留空时 Hugo 会从正文自动生成摘要。 |
+| `url` | 字符串 | 强制指定文章最终 URL。需要兼容旧链接时使用，例如 `url = "/archives/1269/"`。写了 `url` 后会覆盖 `slug` 生成规则。 |
+| `aliases` | 字符串数组 | 旧链接重定向。适合文章换新 URL 后保留旧入口，例如 `aliases = ["/old-post/"]`。 |
+| `author` | 字符串 | 文章作者。模板默认主要使用站点作者，通常不用每篇都写。 |
+| `lastmod` | 时间 | 最后修改时间。部分主题、RSS 或 SEO 工具会用到。 |
+
+更完整的文章示例：
+
+```toml
++++
+title = "My First Post"
+date = "2024-01-05T10:00:00+08:00"
+lastmod = "2024-01-06T18:30:00+08:00"
+draft = false
+slug = "my-first-post"
+categories = ["Hugo"]
+tags = ["demo", "guide"]
+featured_image = "/images/hero.svg"
+excerpt = "这是一篇用于演示 front matter 写法的文章。"
+views = 0
+comment_count = 0
++++
+```
+
 文章 URL 会按 `hugo.toml` 的规则生成：
 
 ```toml
@@ -248,6 +290,35 @@ comment_count = 0
 
 ```text
 content/posts/my-first-post.md -> /archives/my-first-post/
+```
+
+如果你写了：
+
+```toml
+url = "/archives/1001/"
+```
+
+最终文章链接会固定为：
+
+```text
+/archives/1001/
+```
+
+写正文时，front matter 结束后的内容就是文章正文：
+
+```markdown
++++
+title = "My First Post"
+date = "2024-01-05T10:00:00+08:00"
+draft = false
+slug = "my-first-post"
++++
+
+这里开始写正文。
+
+## 二级标题
+
+可以写 Markdown，也可以写 HTML。
 ```
 
 ## 独立页面
