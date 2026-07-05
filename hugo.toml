@@ -1,4 +1,4 @@
-baseURL = "https://example.com/"
+baseURL = "https://lansepeach.github.io/hugo-akina-starter/public/"
 languageCode = "zh-Hans"
 title = "Akina Hugo Starter"
 hasCJKLanguage = true
