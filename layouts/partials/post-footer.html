@@ -1,9 +1,9 @@
 {{ $category := index (.Params.categories | default (slice "")) 0 }}
-<div id="crumbs">转载请注明原文链接：<a href="{{ .Site.Home.RelPermalink }}">首页</a>{{ with $category }} &gt; <a href="{{ printf "/categories/%s/" (. | urlize) }}" rel="category tag">{{ . }}</a>{{ end }} &gt; <span class="current">{{ .Title }}</span></div>
+<div id="crumbs">转载请注明原文链接：<a href="{{ .Site.Home.RelPermalink }}">首页</a>{{ with $category }} &gt; <a href="{{ printf "categories/%s/" (. | urlize) | relURL }}" rel="category tag">{{ . }}</a>{{ end }} &gt; <span class="current">{{ .Title }}</span></div>
 {{ with .Site.Params.rewardImage }}
 <div class="reward">
   <span>赏</span>
-  <ul><li><img src="{{ . }}" alt="{{ $.Site.Params.rewardText | default "Reward" }}">{{ $.Site.Params.rewardText | default "Reward" }}</li></ul>
+  <ul><li><img src="{{ . | replaceRE "^/" "" | relURL }}" alt="{{ $.Site.Params.rewardText | default "Reward" }}">{{ $.Site.Params.rewardText | default "Reward" }}</li></ul>
 </div>
 {{ end }}
 <footer class="post-footer">

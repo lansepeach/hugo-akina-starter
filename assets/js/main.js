@@ -77,7 +77,7 @@
 
   async function ensureSearchIndex() {
     if (searchIndex) return searchIndex;
-    const response = await fetch('/index.json');
+    const response = await fetch(document.body.dataset.searchIndex || '/index.json');
     searchIndex = await response.json();
     return searchIndex;
   }

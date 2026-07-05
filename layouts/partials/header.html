@@ -1,15 +1,15 @@
 <header class="site-header" role="banner">
   <div class="site-top">
     <div class="site-branding">
-      <div class="site-title"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.logo }}" alt="{{ .Site.Title }}"></a></div>
+      <div class="site-title"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.logo | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Title }}"></a></div>
     </div>
     <div class="searchbox"><button class="js-toggle-search iconsearch search-toggle iconfont" type="button" aria-label="搜索" data-toggle-search>&#xe6a2;</button></div>
     <div class="lower">
       <nav>
         <ul class="menu">
           {{ range .Site.Menus.main }}
-            <li class="{{ if .HasChildren }}menu-item-has-children{{ end }}"><a href="{{ .URL }}">{{ .Name }}</a>
-              {{ if .HasChildren }}<ul class="sub-menu">{{ range .Children }}<li><a href="{{ .URL }}">{{ .Name }}</a></li>{{ end }}</ul>{{ end }}
+            <li class="{{ if .HasChildren }}menu-item-has-children{{ end }}"><a href="{{ .URL | relURL }}">{{ .Name }}</a>
+              {{ if .HasChildren }}<ul class="sub-menu">{{ range .Children }}<li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>{{ end }}</ul>{{ end }}
             </li>
           {{ end }}
         </ul>
@@ -31,7 +31,7 @@
 <div class="headertop">
 <div id="centerbg">
   <div class="focusinfo">
-    <div class="header-tou"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.avatar }}" alt="{{ .Site.Params.author }}"></a></div>
+    <div class="header-tou"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.avatar | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Params.author }}"></a></div>
     <div class="header-info"><p>{{ .Site.Params.signature }}</p></div>
     <div class="top-social">
       {{ $icons := dict "email" "&#xe7ab;" "qq" "&#xe621;" "weibo" "&#xe623;" "bili" "&#xe633;" "github" "Git" }}
@@ -39,7 +39,7 @@
       <li class="{{ .name }}"><a href="{{ .url }}" target="_blank" rel="noopener noreferrer" title="{{ .label | default .name }}"><i class="iconfont">{{ index $icons .name | default (.label | default .name) | safeHTML }}</i></a></li>
       {{ end }}
       {{ with .Site.Params.wechatImage }}
-      <li class="wechat"><a><i class="iconfont">&#xe61e;</i></a><ul><a href="#"><img src="{{ . }}" alt="Wechat"></a></ul></li>
+      <li class="wechat"><a><i class="iconfont">&#xe61e;</i></a><ul><a href="#"><img src="{{ . | replaceRE "^/" "" | relURL }}" alt="Wechat"></a></ul></li>
       {{ end }}
     </div>
   </div>
@@ -47,7 +47,8 @@
 </div>
 {{ else if and (eq .Kind "page") (eq .Type "posts") }}
 <div class="headertop">
-  <div id="centerbg_single" style="background-image: url('{{ with .Params.featured_image }}{{ . }}{{ else }}{{ .Site.Params.heroImage }}{{ end }}')">
+  {{ $singleHero := .Params.featured_image | default .Site.Params.heroImage }}
+  <div id="centerbg_single" style="background-image: url('{{ $singleHero | replaceRE "^/" "" | relURL }}')">
     <div class="focusinfo">
       <div class="header-info_single">
         <h1 class="entry-title">{{ .Title }}</h1>

@@ -12,14 +12,14 @@
 <style>:root{--site-font-family:"MiSans VF",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;}</style>
 {{ else if eq $provider "misans-local" }}
 {{ if $preload }}
-<link rel="preload" href="/theme/akinapro/fonts/MiSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/theme/akinapro/fonts/MiSans-Medium.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/theme/akinapro/fonts/MiSans-Semibold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ "theme/akinapro/fonts/MiSans-Regular.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ "theme/akinapro/fonts/MiSans-Medium.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ "theme/akinapro/fonts/MiSans-Semibold.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
 {{ end }}
 <style>
-@font-face{font-family:"MiSans";src:url("/theme/akinapro/fonts/MiSans-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
-@font-face{font-family:"MiSans";src:url("/theme/akinapro/fonts/MiSans-Medium.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap;}
-@font-face{font-family:"MiSans";src:url("/theme/akinapro/fonts/MiSans-Semibold.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:"MiSans";src:url("{{ "theme/akinapro/fonts/MiSans-Regular.woff2" | relURL }}") format("woff2");font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:"MiSans";src:url("{{ "theme/akinapro/fonts/MiSans-Medium.woff2" | relURL }}") format("woff2");font-weight:500;font-style:normal;font-display:swap;}
+@font-face{font-family:"MiSans";src:url("{{ "theme/akinapro/fonts/MiSans-Semibold.woff2" | relURL }}") format("woff2");font-weight:600;font-style:normal;font-display:swap;}
 :root{--site-font-family:"MiSans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;}
 </style>
 {{ else }}

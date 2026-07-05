@@ -8,7 +8,7 @@
   <h1 class="fes-title">{{ .Site.Params.featuresTitle | default "本博客使用到" }}</h1>
   <div class="feature-content">
     {{ range $i, $feature := .Site.Params.features }}
-      <li class="feature-{{ add $i 1 }}"><a href="{{ $feature.url }}" target="_blank" rel="noopener"><div class="feature-title"><span class="foverlay">{{ $feature.title }}</span></div><img src="{{ $feature.image }}" alt="{{ $feature.title }}"></a></li>
+      <li class="feature-{{ add $i 1 }}"><a href="{{ $feature.url }}" target="_blank" rel="noopener"><div class="feature-title"><span class="foverlay">{{ $feature.title }}</span></div><img src="{{ $feature.image | replaceRE "^/" "" | relURL }}" alt="{{ $feature.title }}"></a></li>
     {{ end }}
   </div>
 </div>

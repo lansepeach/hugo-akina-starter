@@ -2951,7 +2951,7 @@ li.feature-2 {
 #centerbg {
     width: 100%;
     min-height: 550px;
-    background: url(/images/missing-image.svg) no-repeat scroll center center;
+    background: url(../../images/missing-image.svg) no-repeat scroll center center;
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -2968,7 +2968,7 @@ li.feature-2 {
 #centerbg_single {
     width: 100%;
     height: 550px;
-    background: url(/images/missing-image.svg) no-repeat scroll center center;
+    background: url(../../images/missing-image.svg) no-repeat scroll center center;
     background-size: cover;
     z-index: -1;
     overflow: hidden;
@@ -4527,24 +4527,13 @@ li code, ol li code, pre code {
     margin-right: 5px;
 }
 
-/*
 @font-face {
     font-family: 'iconfont';
-    src: url('images/fonts/iconfont.eot');
-    src: url('images/fonts/iconfont.eot') format('embedded-opentype'),
-    url('images/fonts/iconfont.woff') format('woff'),
-    url('images/fonts/iconfont.ttf') format('truetype'),
-    url('images/fonts/iconfont.svg#iconfont') format('svg');
-}
-*/
-
-@font-face {
-    font-family: 'iconfont';
-    src: url('/theme/akinapro/iconfont/iconfont.eot');
-    src: url('/theme/akinapro/iconfont/iconfont.eot?#iefix') format('embedded-opentype'),
-    url('/theme/akinapro/iconfont/iconfont.woff') format('woff'),
-    url('/theme/akinapro/iconfont/iconfont.ttf') format('truetype'),
-    url('/theme/akinapro/iconfont/iconfont.svg#iconfont') format('svg');
+    src: url('iconfont/iconfont.eot');
+    src: url('iconfont/iconfont.eot?#iefix') format('embedded-opentype'),
+    url('iconfont/iconfont.woff') format('woff'),
+    url('iconfont/iconfont.ttf') format('truetype'),
+    url('iconfont/iconfont.svg#iconfont') format('svg');
 }
 
 .iconfont {
@@ -4720,8 +4709,6 @@ li code, ol li code, pre code {
     transition: all 0.3s 1s ease-out;
     /* Chrome 26, Firefox 16+, iOS 7+, IE 10+, Opera, Safari 6.1+  */
 }
-
-
 
 
 

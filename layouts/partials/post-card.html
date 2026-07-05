@@ -3,7 +3,8 @@
   <div class="feature">
     <a class="post-feature" href="{{ .RelPermalink }}" aria-label="{{ .Title }}">
       <span class="overlay"><i>阅读</i></span>
-      <img src="{{ with .Params.featured_image }}{{ . }}{{ else }}{{ printf "/theme/akinapro/images/random/deu%d.jpg" (add (mod .Date.Day 7) 1) }}{{ end }}" alt="{{ .Title }}" loading="lazy">
+      {{ $featureImage := .Params.featured_image | default (printf "/theme/akinapro/images/random/deu%d.jpg" (add (mod .Date.Day 7) 1)) }}
+      <img src="{{ $featureImage | replaceRE "^/" "" | relURL }}" alt="{{ .Title }}" loading="lazy">
     </a>
   </div>
   <time class="p-time" datetime="{{ .Date.Format "2006-01-02" }}"><i class="iconfont">&#xe636;</i> {{ .Date.Format "2006-01-02" }}</time>

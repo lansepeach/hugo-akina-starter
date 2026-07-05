@@ -13,7 +13,7 @@
           <a class="link-item-inner effect-apollo" title="{{ .title | default $description }}" href="{{ .url }}" target="_blank" rel="noopener noreferrer nofollow">
             <span class="link-avatar" aria-hidden="true">
               {{ with .avatar }}
-              <img src="{{ . }}" alt="" loading="lazy" decoding="async">
+              <img src="{{ . | replaceRE "^/" "" | relURL }}" alt="" loading="lazy" decoding="async">
               {{ else }}
               {{ $.Scratch.Set "avatarText" ($name | truncate 1 "") }}
               {{ with .avatarText }}{{ $.Scratch.Set "avatarText" . }}{{ end }}

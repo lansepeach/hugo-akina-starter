@@ -1,0 +1,1 @@
+<img src="{{ .Destination | replaceRE "^/" "" | relURL | safeURL }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }} loading="lazy">
