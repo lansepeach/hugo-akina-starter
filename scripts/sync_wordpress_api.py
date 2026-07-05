@@ -1,0 +1,456 @@
+#!/usr/bin/env python3
+"""Sync published WordPress REST API posts into Hugo content files.
+
+The script is designed for cron/systemd timers: it stores the newest seen
+WordPress modified timestamp in .wordpress-sync-state.json and only asks for
+newer posts on the next run.
+"""
+
+from __future__ import annotations
+
+import argparse
+import base64
+import html
+import json
+import os
+import re
+import shlex
+import subprocess
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_STATE = ROOT / ".wordpress-sync-state.json"
+DEFAULT_CONTENT_DIR = ROOT / "content" / "posts"
+USER_AGENT = "hugo-akina-starter-wordpress-sync/1.0"
+
+
+def env_first(*names: str) -> str:
+    for name in names:
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    return ""
+
+
+def clean_site_url(value: str) -> str:
+    value = value.strip().rstrip("/")
+    if not value:
+        raise RuntimeError("missing WordPress site URL; set WORDPRESS_URL or pass --site-url")
+    if not value.startswith(("http://", "https://")):
+        value = "https://" + value
+    return value
+
+
+def parse_timezone(value: str) -> timezone:
+    value = value.strip().upper()
+    if value in {"Z", "UTC", "+00:00", "+0000"}:
+        return timezone.utc
+    match = re.fullmatch(r"([+-])(\d{2}):?(\d{2})", value)
+    if not match:
+        raise RuntimeError(f"invalid timezone {value!r}; use a value like +08:00")
+    sign, hours, minutes = match.groups()
+    delta = timedelta(hours=int(hours), minutes=int(minutes))
+    if sign == "-":
+        delta = -delta
+    return timezone(delta)
+
+
+def auth_header(username: str, password: str) -> str:
+    if not username or not password:
+        return ""
+    token = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
+    return f"Basic {token}"
+
+
+def api_url(site_url: str, path: str, params: dict[str, str] | None = None) -> str:
+    url = f"{site_url}/wp-json/wp/v2/{path.lstrip('/')}"
+    if params:
+        url += "?" + urllib.parse.urlencode(params)
+    return url
+
+
+def fetch_json(url: str, auth: str) -> tuple[Any, Any]:
+    request = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": USER_AGENT})
+    if auth:
+        request.add_header("Authorization", auth)
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            charset = response.headers.get_content_charset() or "utf-8"
+            body = response.read().decode(charset)
+            return json.loads(body), response.headers
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"WordPress API HTTP {exc.code} for {url}: {body[:400]}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"WordPress API request failed for {url}: {exc}") from exc
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"WordPress API returned invalid JSON for {url}") from exc
+
+
+def load_state(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {"posts": {}}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"invalid state file: {path}") from exc
+    if not isinstance(data, dict):
+        raise RuntimeError(f"invalid state file: {path}")
+    data.setdefault("posts", {})
+    return data
+
+
+def save_state(path: Path, state: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def rendered(value: Any) -> str:
+    if isinstance(value, dict):
+        value = value.get("rendered", "")
+    return str(value or "")
+
+
+def strip_markup(value: str) -> str:
+    value = re.sub(r"<[^>]+>", "", value or "")
+    value = html.unescape(value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def clean_content(value: str) -> str:
+    value = re.sub(r"<!--\s*/?wp:[^>]*-->", "", value or "")
+    value = value.replace("\r\n", "\n").replace("\r", "\n").strip()
+    return value + "\n" if value else ""
+
+
+def toml_string(value: str) -> str:
+    return json.dumps(value or "", ensure_ascii=False)
+
+
+def toml_array(values: list[str]) -> str:
+    return "[" + ", ".join(toml_string(value) for value in values if value) + "]"
+
+
+def frontmatter(fields: dict[str, Any]) -> str:
+    lines = ["+++"]
+    for key, value in fields.items():
+        if isinstance(value, bool):
+            lines.append(f"{key} = {str(value).lower()}")
+        elif isinstance(value, int):
+            lines.append(f"{key} = {value}")
+        elif isinstance(value, list):
+            lines.append(f"{key} = {toml_array([str(item) for item in value])}")
+        else:
+            lines.append(f"{key} = {toml_string(str(value or ''))}")
+    lines.append("+++")
+    return "\n".join(lines) + "\n\n"
+
+
+def format_wp_date(value: str, fallback_tz: timezone) -> str:
+    value = (value or "").strip()
+    if not value or value.startswith("0000-00-00"):
+        return datetime(1970, 1, 1, tzinfo=fallback_tz).isoformat()
+    candidate = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        dt = datetime.fromisoformat(candidate)
+    except ValueError:
+        return value
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=fallback_tz)
+    return dt.isoformat()
+
+
+def modified_gmt(post: dict[str, Any]) -> str:
+    value = str(post.get("modified_gmt") or post.get("modified") or "").strip()
+    if not value:
+        return ""
+    if value.endswith("Z") or re.search(r"[+-]\d{2}:?\d{2}$", value):
+        return value
+    return value + "Z"
+
+
+def modified_after_value(value: str) -> str:
+    value = (value or "").strip()
+    if not value:
+        return ""
+    candidate = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        dt = datetime.fromisoformat(candidate)
+    except ValueError:
+        return value
+    dt = dt - timedelta(seconds=1)
+    result = dt.isoformat()
+    return result.replace("+00:00", "Z")
+
+
+def post_terms(post: dict[str, Any], taxonomy: str) -> list[str]:
+    result: list[str] = []
+    embedded = post.get("_embedded", {})
+    groups = embedded.get("wp:term", []) if isinstance(embedded, dict) else []
+    for group in groups:
+        if not isinstance(group, list):
+            continue
+        for term in group:
+            if not isinstance(term, dict) or term.get("taxonomy") != taxonomy:
+                continue
+            name = strip_markup(str(term.get("name") or ""))
+            if name and name not in result:
+                result.append(name)
+    return result
+
+
+def featured_image(post: dict[str, Any]) -> str:
+    embedded = post.get("_embedded", {})
+    media_items = embedded.get("wp:featuredmedia", []) if isinstance(embedded, dict) else []
+    if not media_items or not isinstance(media_items[0], dict):
+        return ""
+    media = media_items[0]
+    return str(media.get("source_url") or "")
+
+
+def author_name(post: dict[str, Any]) -> str:
+    embedded = post.get("_embedded", {})
+    authors = embedded.get("author", []) if isinstance(embedded, dict) else []
+    if authors and isinstance(authors[0], dict):
+        return strip_markup(str(authors[0].get("name") or ""))
+    return "wordpress"
+
+
+def extract_views(post: dict[str, Any]) -> int:
+    meta = post.get("meta", {})
+    if not isinstance(meta, dict):
+        return 0
+    for key in ("views", "post_views_count", "post_views", "view_count"):
+        value = meta.get(key)
+        if isinstance(value, list):
+            value = value[0] if value else 0
+        try:
+            return int(value or 0)
+        except (TypeError, ValueError):
+            continue
+    return 0
+
+
+def post_url(post: dict[str, Any], mode: str) -> str:
+    post_id = str(post.get("id") or "")
+    slug = str(post.get("slug") or post_id)
+    if mode == "id":
+        return f"/archives/{post_id}/"
+    if mode == "slug":
+        return ""
+    link = str(post.get("link") or "")
+    if link:
+        path = urllib.parse.urlparse(link).path or f"/archives/{slug}/"
+        path = "/" + path.lstrip("/")
+        return path if path.endswith("/") else path + "/"
+    return f"/archives/{post_id}/"
+
+
+def post_path(content_dir: Path, post: dict[str, Any]) -> Path:
+    post_id = str(post.get("id") or "untitled")
+    return content_dir / f"wp-{post_id}.md"
+
+
+def fetch_comment_count(site_url: str, auth: str, post_id: int, quiet: bool) -> int:
+    url = api_url(site_url, "comments", {"post": str(post_id), "status": "approve", "per_page": "1"})
+    try:
+        data, headers = fetch_json(url, auth)
+    except RuntimeError as exc:
+        if not quiet:
+            print(f"warning: failed to fetch comments for post {post_id}: {exc}", file=sys.stderr)
+        return 0
+    total = headers.get("X-WP-Total")
+    if total is not None:
+        try:
+            return int(total)
+        except ValueError:
+            pass
+    return len(data) if isinstance(data, list) else 0
+
+
+def fetch_posts(site_url: str, auth: str, args: argparse.Namespace, state: dict[str, Any]) -> list[dict[str, Any]]:
+    if args.post_id is not None:
+        data, _headers = fetch_json(api_url(site_url, f"posts/{args.post_id}", {"_embed": "1"}), auth)
+        if not isinstance(data, dict):
+            raise RuntimeError(f"unexpected WordPress post response for post {args.post_id}")
+        return [data]
+
+    since = "" if args.all else modified_after_value(str(state.get("last_seen_modified_gmt") or ""))
+    posts: list[dict[str, Any]] = []
+    page = 1
+    while True:
+        params = {
+            "_embed": "1",
+            "status": args.status,
+            "per_page": "100",
+            "page": str(page),
+            "orderby": "modified",
+            "order": "asc",
+        }
+        if since:
+            params["modified_after"] = since
+        data, headers = fetch_json(api_url(site_url, "posts", params), auth)
+        if not isinstance(data, list):
+            raise RuntimeError("unexpected WordPress posts response")
+        posts.extend(item for item in data if isinstance(item, dict))
+        total_pages = int(headers.get("X-WP-TotalPages") or "1")
+        if page >= total_pages or not data:
+            break
+        page += 1
+    return posts
+
+
+def build_document(
+    post: dict[str, Any],
+    args: argparse.Namespace,
+    fallback_tz: timezone,
+    comment_count: int,
+) -> str:
+    post_id = int(post.get("id") or 0)
+    slug = str(post.get("slug") or post_id)
+    fields: dict[str, Any] = {
+        "title": strip_markup(rendered(post.get("title"))) or f"Untitled {post_id}",
+        "date": format_wp_date(str(post.get("date") or post.get("date_gmt") or ""), fallback_tz),
+        "draft": False,
+        "type": "posts",
+    }
+    canonical_url = post_url(post, args.url_mode)
+    if canonical_url:
+        fields["url"] = canonical_url
+    fields.update(
+        {
+            "slug": slug,
+            "wp_id": post_id,
+            "author": author_name(post),
+            "categories": post_terms(post, "category"),
+            "tags": post_terms(post, "post_tag"),
+            "featured_image": featured_image(post),
+            "views": extract_views(post),
+            "comment_count": comment_count,
+            "excerpt": strip_markup(rendered(post.get("excerpt"))),
+        }
+    )
+    return frontmatter(fields) + clean_content(rendered(post.get("content")))
+
+
+def sync_posts(
+    posts: list[dict[str, Any]],
+    site_url: str,
+    auth: str,
+    args: argparse.Namespace,
+    state: dict[str, Any],
+) -> int:
+    fallback_tz = parse_timezone(args.timezone)
+    content_dir = Path(args.content_dir)
+    if not content_dir.is_absolute():
+        content_dir = ROOT / content_dir
+    changed = 0
+    newest_modified = str(state.get("last_seen_modified_gmt") or "")
+    now = datetime.now(timezone.utc).isoformat()
+
+    for post in posts:
+        post_id = int(post.get("id") or 0)
+        if not post_id:
+            continue
+        comments = 0 if args.skip_comment_count else fetch_comment_count(site_url, auth, post_id, args.quiet)
+        document = build_document(post, args, fallback_tz, comments)
+        path = post_path(content_dir, post)
+        old = path.read_text(encoding="utf-8") if path.exists() else ""
+        if old != document:
+            changed += 1
+            if args.dry_run:
+                print(f"would write {path.relative_to(ROOT)}")
+            else:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(document, encoding="utf-8")
+                if not args.quiet:
+                    print(f"wrote {path.relative_to(ROOT)}")
+        elif not args.quiet:
+            print(f"unchanged {path.relative_to(ROOT)}")
+
+        seen_modified = modified_gmt(post)
+        if seen_modified and seen_modified > newest_modified:
+            newest_modified = seen_modified
+        state.setdefault("posts", {})[str(post_id)] = {
+            "path": path.relative_to(ROOT).as_posix(),
+            "modified_gmt": seen_modified,
+            "synced_at": now,
+        }
+
+    if not args.dry_run:
+        state["last_sync_utc"] = now
+        if newest_modified:
+            state["last_seen_modified_gmt"] = newest_modified
+    return changed
+
+
+def run_command(command: str) -> None:
+    subprocess.run(shlex.split(command), cwd=ROOT, check=True)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Sync WordPress REST API posts into Hugo content/posts.")
+    parser.add_argument("--site-url", default=env_first("WORDPRESS_URL", "WP_URL", "WP_SITE_URL"), help="WordPress site URL, or set WORDPRESS_URL")
+    parser.add_argument("--username", default=env_first("WORDPRESS_USERNAME", "WP_USERNAME"), help="WordPress username for private/authenticated APIs")
+    parser.add_argument("--password", default=env_first("WORDPRESS_APP_PASSWORD", "WP_APP_PASSWORD", "WORDPRESS_PASSWORD"), help="WordPress application password")
+    parser.add_argument("--status", default="publish", help="WordPress post status to fetch; default: publish")
+    parser.add_argument("--timezone", default="+08:00", help="timezone for WordPress local dates; default: +08:00")
+    parser.add_argument("--url-mode", choices=("wp", "id", "slug"), default="wp", help="canonical URL mode: wp preserves WordPress link path, id uses /archives/ID/, slug uses Hugo permalinks")
+    parser.add_argument("--content-dir", default=str(DEFAULT_CONTENT_DIR.relative_to(ROOT)), help="Hugo posts directory; default: content/posts")
+    parser.add_argument("--state-file", default=str(DEFAULT_STATE.relative_to(ROOT)), help="sync state file; default: .wordpress-sync-state.json")
+    parser.add_argument("--skip-comment-count", action="store_true", help="do not query wp/v2/comments for comment totals")
+    parser.add_argument("--dry-run", action="store_true", help="fetch and compare posts without writing files or state")
+    parser.add_argument("--quiet", action="store_true", help="only print warnings and errors")
+
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--all", action="store_true", help="sync all matching posts")
+    mode.add_argument("--since-last-run", action="store_true", help="sync posts modified after the saved state timestamp; this is the default")
+    mode.add_argument("--post-id", type=int, help="sync one WordPress post ID")
+
+    parser.add_argument("--localize-assets", action="store_true", help="run scripts/localize_remote_assets.py after changed posts are written")
+    parser.add_argument("--build", action="store_true", help="run Hugo after changed posts are written")
+    parser.add_argument("--build-always", action="store_true", help="run --localize-assets/--build even when no post changed")
+    parser.add_argument("--hugo-command", default="hugo --minify --cleanDestinationDir", help="Hugo build command used by --build")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        site_url = clean_site_url(args.site_url)
+        state_file = Path(args.state_file)
+        if not state_file.is_absolute():
+            state_file = ROOT / state_file
+        state = load_state(state_file)
+        auth = auth_header(args.username, args.password)
+        posts = fetch_posts(site_url, auth, args, state)
+        if not args.quiet:
+            print(f"fetched {len(posts)} post(s)")
+        changed = sync_posts(posts, site_url, auth, args, state)
+        if not args.dry_run:
+            save_state(state_file, state)
+        if args.dry_run:
+            if not args.quiet:
+                print(f"dry run: would change {changed} post(s)")
+        elif changed or args.build_always:
+            if args.localize_assets:
+                run_command(f"{shlex.quote(sys.executable)} scripts/localize_remote_assets.py")
+            if args.build:
+                run_command(args.hugo_command)
+        elif not args.quiet:
+            print("no changed posts")
+        return 0
+    except (RuntimeError, subprocess.CalledProcessError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

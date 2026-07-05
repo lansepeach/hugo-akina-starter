@@ -28,7 +28,7 @@
 ├── data/
 │   └── comments.json        # 静态旧评论示例
 ├── layouts/                 # 模板
-├── scripts/                 # WordPress 导入和远程资源本地化脚本
+├── scripts/                 # WordPress 导入、定时同步和远程资源本地化脚本
 ├── static/                  # 原样发布的静态资源
 ├── hugo.toml                # 站点配置
 └── README.md
@@ -505,6 +505,7 @@ static/images/avatar.svg -> /images/avatar.svg
 
 ```text
 scripts/import_wordpress.py
+scripts/sync_wordpress_api.py
 scripts/localize_remote_assets.py
 ```
 
@@ -519,6 +520,126 @@ scripts/localize_remote_assets.py
 7. 不要把原始 XML、SQL、压缩包等私有迁移文件提交到 GitHub。
 
 `.gitignore` 已默认忽略 `*.xml`、`*.sql`、`*.zip` 等迁移文件。
+
+## WordPress 定时同步
+
+如果你还想继续在 WordPress 后台发布文章，可以用 REST API 同步脚本把新文章拉到 Hugo：
+
+详细说明见：
+
+```text
+docs/wordpress-sync.md
+```
+
+```text
+WordPress REST API -> scripts/sync_wordpress_api.py -> content/posts/ -> hugo build
+```
+
+脚本文件：
+
+```text
+scripts/sync_wordpress_api.py
+```
+
+首次测试建议先 dry run：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --all --dry-run
+```
+
+首次正式全量同步：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --all
+```
+
+之后增量同步：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --since-last-run
+```
+
+同步一篇指定文章：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --post-id 1269
+```
+
+如果 WordPress REST API 需要登录权限，可以使用 WordPress 应用程序密码：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" \
+WORDPRESS_USERNAME="你的用户名" \
+WORDPRESS_APP_PASSWORD="xxxx xxxx xxxx xxxx" \
+python3 scripts/sync_wordpress_api.py --since-last-run
+```
+
+脚本会生成类似这样的文件：
+
+```text
+content/posts/wp-1269.md
+```
+
+生成的 front matter 会包含：
+
+```toml
+title = "WordPress 文章标题"
+date = "2026-07-06T10:00:00+08:00"
+draft = false
+type = "posts"
+url = "/archives/1269/"
+slug = "wordpress-slug"
+wp_id = 1269
+author = "wordpress"
+categories = ["分类名"]
+tags = ["标签名"]
+featured_image = "https://example.com/wp-content/uploads/image.jpg"
+views = 0
+comment_count = 3
+excerpt = "文章摘要"
+```
+
+URL 生成模式由 `--url-mode` 控制：
+
+| 参数 | 效果 | 适合场景 |
+| --- | --- | --- |
+| `--url-mode wp` | 默认值，保留 WordPress REST API 返回的原文章路径 | 希望 Hugo 链接和 WordPress 旧链接一致 |
+| `--url-mode id` | 强制生成 `/archives/文章ID/` | WordPress 旧站使用数字归档链接 |
+| `--url-mode slug` | 不写 `url`，交给 Hugo 的 `[permalinks]` 用 `slug` 生成 | 新站不需要兼容旧链接 |
+
+如果文章图片仍然指向 WordPress，可以在同步后自动本地化远程资源：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --since-last-run --localize-assets
+```
+
+如果要同步后自动构建 Hugo：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --since-last-run --localize-assets --build
+```
+
+脚本会在项目根目录写入本地状态文件：
+
+```text
+.wordpress-sync-state.json
+```
+
+这个文件记录上次同步到的 WordPress 修改时间，已加入 `.gitignore`，不要提交到公开仓库。
+
+cron 定时任务示例，每 10 分钟同步一次：
+
+```cron
+*/10 * * * * cd /path/to/hugo-akina-starter && WORDPRESS_URL="https://你的WordPress域名" /usr/bin/python3 scripts/sync_wordpress_api.py --since-last-run --localize-assets --build >> wordpress-sync.log 2>&1
+```
+
+注意事项：
+
+- 脚本目前同步 WordPress 文章，不同步页面删除动作。
+- 同一个 WordPress 文章 ID 会固定写入同一个 `content/posts/wp-ID.md` 文件。
+- 如果你手动改了 `wp-ID.md`，下次 WordPress 文章更新后会被同步脚本覆盖。
+- `comment_count` 会通过 `/wp-json/wp/v2/comments` 查询；如果评论接口不可用，可以加 `--skip-comment-count`。
+- WordPress 正文 HTML 会尽量原样保留，不强制转换成 Markdown。
 
 ## 部署建议
 
