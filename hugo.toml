@@ -47,6 +47,10 @@ enableEmoji = true
   friendLinksApplyTitle = "Exchange Links"
   friendLinksApplyText = "Leave your site name, URL, avatar and description in the message board."
 
+  [params.font]
+    provider = "system"
+    preload = false
+
   [params.myLink]
     title = "Akina Hugo Starter"
     url = "https://example.com/"

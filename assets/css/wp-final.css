@@ -95,7 +95,7 @@
 
 /* extracted from original style id=wp-custom-css */
 .post-share .x-icon {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+    font-family: var(--site-font-family); 
     font-style: normal; 
     font-weight: bold; 
     font-size: 16px;   
@@ -122,7 +122,7 @@
 
 /* --- 2. 现代化文章正文样式 --- */
 .entry-content {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--site-font-family);
     font-size: 16px;
     line-height: 1.75;
     color: #333;
@@ -233,7 +233,7 @@ _==========================================================_ */
     text-align: center !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
-    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-family: var(--site-font-family) !important;
 }
 
 /* hover 状态 */
@@ -1232,38 +1232,9 @@ article.hentry,
 
 
 /* ==========================================================
- * MiSans 字体引入与全站应用
- * 适用于 WordPress 额外 CSS
- * 字体目录：
- * /wp-content/themes/AkinaPro-master/fonts/
+ * 全站系统字体栈
+ * 默认不加载完整 CJK WebFont，避免首屏额外请求 15MB+ 字体资源。
  * ========================================================== */
-
-/* MiSans Regular - 正文 */
-@font-face {
-    font-family: "MiSans";
-    src: url("/theme/akinapro/fonts/MiSans-Regular.woff2") format("woff2");
-    font-weight: 400;
-    font-style: normal;
-    font-display: block;
-}
-
-/* MiSans Medium - 菜单、按钮、强调 */
-@font-face {
-    font-family: "MiSans";
-    src: url("/theme/akinapro/fonts/MiSans-Medium.woff2") format("woff2");
-    font-weight: 500;
-    font-style: normal;
-    font-display: block;
-}
-
-/* MiSans Semibold - 标题 */
-@font-face {
-    font-family: "MiSans";
-    src: url("/theme/akinapro/fonts/MiSans-Semibold.woff2") format("woff2");
-    font-weight: 600;
-    font-style: normal;
-    font-display: block;
-}
 
 /* ==========================================================
  * 全站基础字体
@@ -1276,7 +1247,7 @@ button,
 input,
 select,
 textarea {
-    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+    font-family: var(--site-font-family) !important;
 }
 
 /* 常见布局、正文、导航、评论、首页模块 */
@@ -1306,10 +1277,10 @@ textarea {
 .fes-title,
 #comments,
 #crumbs {
-    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+    font-family: var(--site-font-family) !important;
 }
 
-/* 标题统一使用 MiSans Semibold */
+/* 标题使用系统字体的 600 字重 */
 h1,
 h2,
 h3,
@@ -1323,7 +1294,7 @@ h6,
 .entry-content h4,
 .fes-title,
 .toc-container h4 {
-    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+    font-family: var(--site-font-family) !important;
     font-weight: 600;
 }
 
@@ -1345,13 +1316,13 @@ input[type="submit"],
 .code-block-actions button,
 .post-like,
 .post-share {
-    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+    font-family: var(--site-font-family) !important;
     font-weight: 500;
 }
 
 /* ==========================================================
  * 代码块字体修复
- * 代码内容保留等宽字体，不使用 MiSans
+ * 代码内容保留等宽字体
  * ========================================================== */
 
 pre,
@@ -1371,14 +1342,14 @@ samp,
     font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
-/* 代码块顶部栏、语言名、复制按钮继续使用 MiSans */
+/* 代码块顶部栏、语言名、复制按钮使用系统字体 */
 .entry-content .code-block-header,
 .entry-content .code-block-header *,
 .entry-content .code-block-lang,
 .entry-content .code-block-actions,
 .entry-content .code-block-actions *,
 .entry-content .code-block-actions button {
-    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+    font-family: var(--site-font-family) !important;
 }
 
 /* ==========================================================

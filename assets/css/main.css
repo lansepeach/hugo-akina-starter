@@ -104,7 +104,7 @@ body.single-post #centerbg_single {
 .top-social li { list-style: none; }
 
 .notice .notice-label {
-  font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  font-family: var(--site-font-family) !important;
   color: var(--akina-main);
   font-weight: 500;
 }

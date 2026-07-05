@@ -8,9 +8,7 @@
   <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
   <meta name="keywords" content="{{ .Site.Params.keywords }}">
   <link rel="icon" href="{{ .Site.Params.favicon }}">
-  <link rel="preload" href="/theme/akinapro/fonts/MiSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/theme/akinapro/fonts/MiSans-Medium.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/theme/akinapro/fonts/MiSans-Semibold.woff2" as="font" type="font/woff2" crossorigin>
+  {{ partial "font.html" . }}
   <link rel="alternate" type="application/rss+xml" href="{{ "index.xml" | absURL }}" title="{{ .Site.Title }}">
   <link rel="stylesheet" href="/theme/akinapro/style.css">
   <link rel="stylesheet" href="/theme/akinapro/highlight/highlight.min.css">

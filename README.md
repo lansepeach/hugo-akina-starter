@@ -13,7 +13,8 @@
 - 友链页支持纯 CSS 字母头像，也支持自定义本地或外部头像。
 - 旧评论可以用 `data/comments.json` 静态展示。
 - Waline 评论系统预留，配置服务地址后才加载。
-- 主题 CSS、字体、iconfont、highlight、Waline 客户端均本地化。
+- 主题 CSS、iconfont、highlight、Waline 客户端均本地化。
+- 字体来源可配置。默认使用系统中文字体栈；也可以切换到小米官方 MiSans CDN 切片字体或本地 MiSans 完整字体。
 
 ## 目录结构
 
@@ -126,6 +127,40 @@ title = "Akina Hugo Starter"
 - `params.heroImage`
 - `params.signature`
 - `params.notice`
+
+## 字体配置
+
+字体在 `hugo.toml` 的 `[params.font]` 配置：
+
+```toml
+[params.font]
+  provider = "system"
+  preload = false
+```
+
+可选值：
+
+- `system`：使用系统中文字体栈，不加载 WebFont，最快，适合公开 starter 默认配置。
+- `misans-cdn`：使用小米官方 CDN 的 `MiSans_VF` 可变字体。官方方案会按 `unicode-range` 切片，并使用 `display=swap`，比一次加载 3 个完整本地字体快得多，但浏览器会自动请求小米 CDN。
+- `misans-local`：使用本地 `static/theme/akinapro/fonts/` 下的 3 个完整 MiSans 字体文件。完全本地化，但字体文件较大。
+
+示例，启用官方 MiSans CDN 切片字体：
+
+```toml
+[params.font]
+  provider = "misans-cdn"
+  preload = false
+```
+
+示例，启用本地 MiSans：
+
+```toml
+[params.font]
+  provider = "misans-local"
+  preload = false
+```
+
+`preload = true` 只对 `misans-local` 生效。完整 CJK 字体很大，通常不建议开启。
 
 ## 菜单配置
 
