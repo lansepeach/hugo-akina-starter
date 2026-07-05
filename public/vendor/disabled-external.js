@@ -1,0 +1,1 @@
+/* External script disabled during static migration. */
