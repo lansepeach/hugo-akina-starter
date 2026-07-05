@@ -1,0 +1,23 @@
+<article class="post post-list" itemscope itemtype="http://schema.org/BlogPosting">
+<div class="post-entry">
+  <div class="feature">
+    <a class="post-feature" href="{{ .RelPermalink }}" aria-label="{{ .Title }}">
+      <span class="overlay"><i>阅读</i></span>
+      <img src="{{ with .Params.featured_image }}{{ . }}{{ else }}{{ printf "/theme/akinapro/images/random/deu%d.jpg" (add (mod .Date.Day 7) 1) }}{{ end }}" alt="{{ .Title }}" loading="lazy">
+    </a>
+  </div>
+  <time class="p-time" datetime="{{ .Date.Format "2006-01-02" }}"><i class="iconfont">&#xe636;</i> {{ .Date.Format "2006-01-02" }}</time>
+  <h1 class="entry-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h1>
+  {{ $excerpt := trim (.Params.excerpt | default "" | plainify | htmlUnescape) " \n\r\t" }}
+  <p>{{ if $excerpt }}{{ $excerpt | truncate 180 }}{{ else }}{{ .Summary | plainify | htmlUnescape | truncate 180 }}{{ end }}</p>
+  <footer class="entry-footer">
+    <div class="info-meta">
+      <span class="meta-item"><em>{{ .Params.comment_count | default 0 }} 条评论</em></span>
+      <span class="meta-item"><em>{{ .Params.views | default 0 }} 热度</em></span>
+      {{ with index .Params.categories 0 }}<span class="meta-item meta-category"><em>{{ . }}</em></span>{{ end }}
+    </div>
+    <div class="post-more"><a href="{{ .RelPermalink }}" aria-label="阅读全文：{{ .Title }}">阅读更多</a></div>
+  </footer>
+  <hr>
+</div>
+</article>

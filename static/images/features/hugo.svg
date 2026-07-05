@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360" role="img" aria-label="Hugo feature">
+  <rect width="640" height="360" rx="28" fill="#eef6ff"/>
+  <circle cx="320" cy="150" r="70" fill="#4c89bf"/>
+  <text x="320" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#fff">Hugo</text>
+  <text x="320" y="254" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" fill="#49677e">Static site generator</text>
+</svg>

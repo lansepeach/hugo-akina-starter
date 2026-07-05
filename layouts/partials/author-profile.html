@@ -1,0 +1,11 @@
+<section class="author-profile">
+  <div class="info" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <a href="{{ .Site.Home.RelPermalink }}" class="profile gravatar"><img src="{{ .Site.Params.avatar }}" itemprop="image" alt="{{ .Site.Params.author }}"></a>
+    <div class="meta">
+      <span class="title">Author</span>
+      <h3 itemprop="name"><a href="{{ .Site.Home.RelPermalink }}" itemprop="url" rel="author">{{ .Site.Params.author }}</a></h3>
+    </div>
+  </div>
+  <hr>
+  <div class="author_local"><i class="iconfont">&#xe622;</i> {{ .Site.Params.location }}</div><p><i class="iconfont">&#xe638;</i>{{ .Site.Params.signature }}</p>
+</section>

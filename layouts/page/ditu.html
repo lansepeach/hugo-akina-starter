@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>站点地图 - {{ .Site.Title }}</title>
+    <meta name="keywords" content="站点地图,{{ .Site.Title }}">
+    <meta name="copyright" content="{{ .Site.Title }}">
+    <link rel="canonical" href="{{ .Permalink }}">
+    <style type="text/css">
+        body {font-family: "Trebuchet MS", Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB', 'STHeiti Light', 'Microsoft YaHei', SimHei, 'WenQuanYi Micro Hei', sans-serif;font-size: 12px;margin: 0;color: #000000;background: #ffffff;}
+        img {border:0;}
+        li {margin-top: 8px;}
+        .page {padding: 4px; border-top: 1px #EEEEEE solid}
+        .author {background-color:#EEEEFF; padding: 6px; border-top: 1px #ddddee solid}
+        #nav, #content, #footer {padding: 8px; border: 1px solid #EEEEEE; clear: both; width: 95%; margin: auto; margin-top: 10px;}
+    </style>
+</head>
+<body data-rsssl=1 vlink="#333333" link="#333333">
+<h2 style="text-align: center; margin-top: 20px">{{ .Site.Title }}'s SiteMap </h2>
+<center></center>
+<div id="nav"><a href="{{ .Site.Home.RelPermalink }}"><strong>{{ .Site.Title }}</strong></a> &raquo; <a href="{{ .RelPermalink }}">站点地图</a></div>
+<div id="content">
+    <h3>最新文章</h3>
+    <ul>
+        {{ range where .Site.RegularPages "Section" "posts" }}
+            <li><a href="{{ .RelPermalink }}" title="{{ .Title }}" target="_blank">{{ .Title }}</a></li>
+        {{ end }}
+    </ul>
+</div>
+<div id="content">
+    <li class="categories">分类目录<ul>
+        {{ range .Site.Taxonomies.categories }}
+            <li class="cat-item"><a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a></li>
+        {{ end }}
+    </ul></li>
+</div>
+<div id="content">
+    <li class="categories">单页面</li>
+    <div class="menu"><ul>{{ range .Site.Menus.main }}<li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>{{ if .HasChildren }}{{ range .Children }}<li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>{{ end }}{{ end }}{{ end }}</ul></div>
+</div>
+<div id="footer">查看博客首页: <strong><a href="{{ .Site.Home.RelPermalink }}">{{ .Site.Title }}</a></strong></div><br>
+<center>
+    <div style="text-algin: center; font-size: 11px">Latest Update: {{ now.Format "2006-01-02 15:04:05" }}<br><br></div>
+</center>
+<center>
+    <div style="text-algin: center; font-size: 11px">&copy; {{ now.Format "2006" }} <a href="{{ .Site.Home.RelPermalink }}" style="cursor:help">{{ .Site.Title }}</a> 版权所有.<br><br></div>
+</center>
+</body>
+</html>

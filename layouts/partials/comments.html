@@ -1,0 +1,35 @@
+{{ $id := printf "%v" (.Params.wp_id | default .File.BaseFileName) }}
+{{ $comments := index .Site.Data.comments $id | default (index .Site.Data.comments .RelPermalink) | default (slice) }}
+<section id="comments" class="comments">
+  <div class="comments-main">
+  <h3 id="comments-list-title">Comments | <span class="noticom"><a href="{{ .RelPermalink }}#comments">{{ len $comments }} 条评论</a></span></h3>
+  <div id="loading-comments"><span></span></div>
+  {{ if $comments }}
+    <ul class="commentwrap">
+      {{ range $comments }}
+        <li class="comment even thread-even depth-1">
+          <div class="comment_body contents">
+            <div class="profile"><a target="_blank" rel="nofollow" href=""><img src="{{ .avatar | default $.Site.Params.avatar }}" alt="{{ .author }}" class="avatar avatar-50 photo" height="50" width="50" loading="lazy"></a></div>
+            <section class="commeta">
+              <div class="left"><h4 class="author"><a target="_blank" rel="nofollow" href="">{{ .author }}</a></h4></div>
+              <div class="right"><div class="info"><time>{{ .date }}</time></div></div>
+            </section>
+            <div class="body"><p>{{ .content | safeHTML }}</p></div>
+          </div>
+        </li>
+      {{ end }}
+    </ul>
+  {{ else }}
+    <p class="no-comments">暂无评论</p>
+  {{ end }}
+  {{ if .Site.Params.walineServerURL }}
+  <div class="new-comments">
+      <div id="waline"></div>
+      <script type="module">
+        import { init } from '/vendor/waline.js';
+        init({ el: '#waline', serverURL: '{{ .Site.Params.walineServerURL }}', lang: 'zh-CN' });
+      </script>
+  </div>
+  {{ end }}
+  </div>
+</section>

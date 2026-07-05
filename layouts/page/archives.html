@@ -1,0 +1,26 @@
+{{ define "main" }}
+<article class="post-item post-{{ .Params.wp_id | default .File.BaseFileName }} page type-page status-publish hentry">
+  <div id="archives-temp">
+    <h2>文章归档</h2>
+    <div id="archives-content">
+      {{ $posts := where (where .Site.RegularPages "Type" "posts") "Date" "ge" (time "2000-01-01T00:00:00+08:00") }}
+      {{ range $posts.GroupByDate "2006-1" }}
+        {{ $month := index (split .Key "-") 1 }}
+        <div class="archive-title" id="arti-{{ .Key }}">
+          <span class="ar-time"><i class="iconfont">&#xe636;</i></span>
+          <h3>{{ .Key }}</h3>
+          <div class="archives archives-{{ $month }}" id="monlist" data-date="{{ .Key }}">
+            {{ range .Pages }}
+              <span class="ar-circle"></span>
+              <div class="arrow-left-ar"></div>
+              <div class="brick">
+                <a href="{{ .RelPermalink }}"><span class="time"><i class="iconfont">&#xe636;</i>{{ .Date.Format "1-02" }}</span>{{ .Title }}<em>({{ .Params.comment_count | default 0 }})</em></a>
+              </div>
+            {{ end }}
+          </div>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+</article>
+{{ end }}

@@ -1,0 +1,5 @@
+{{ if gt .Paginator.TotalPages 1 }}
+<nav class="navigator">
+  {{ if .Paginator.HasPrev }}<a href="{{ .Paginator.Prev.URL }}"><i class="iconfont">&#xe630;</i></a>{{ end }}{{ if .Paginator.HasNext }}<a href="{{ .Paginator.Next.URL }}"><i class="iconfont">&#xe634;</i></a>{{ end }}
+</nav>
+{{ end }}

@@ -1,0 +1,10 @@
+{
+  "/archives/hello-hugo/": [
+    {
+      "author": "Demo Visitor",
+      "date": "2024-01-04T09:30:00+08:00",
+      "content": "This is a static imported comment example.",
+      "avatar": "/images/avatar.svg"
+    }
+  ]
+}

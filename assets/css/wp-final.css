@@ -1,0 +1,1393 @@
+/* extracted from original style id=dynamic-theme-style */
+.post-squares {
+            display: none !important
+        }
+
+        
+        
+                @media (max-width: 860px) {
+            .author-profile {
+                display: block;
+            }
+        }
+
+        
+        
+        
+        
+        	#centerbg {
+		background-image: url(/uploads/2017/11/161004110411-4.jpg);
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+		background-color: #dce8f3;
+	}
+	
+        
+                @media (max-width: 1280px) {
+            #centerbg {
+                display: block !important;
+            }
+        }
+        .headertop {
+            position: relative;
+            overflow: hidden;
+            margin-top: -60px;
+        }
+        
+                @media (max-width: 1280px) {
+            #centerbg_single {
+                display: block !important;
+            }
+
+            .entry-title-info a:active, .entry-title-info a:hover, .entry-title-info a:link, .entry-title-info a:visited {
+                color: #000;
+            }
+
+            #centerbg_single {
+                height: 350px;
+            }
+
+            .header-info_single {
+                font-size: 12px;
+                margin-top: 45px;
+            }
+
+            header.entry-header {
+                display: none;
+            }
+        }
+
+        
+        
+        .reward {
+            border: 1px solid #4c89bf !important;
+            background: #4c89bf !important;
+        }
+
+        ::selection, #topMenu.menu_close .i_1, #topMenu.menu_close .i_2, .ar-time i, .iconflat {
+            background: #4c89bf !important;
+        }
+
+        .foverlay:hover, .back2top, .comment-checkbox-radio:checked + .comment-checkbox-radioInput:after {
+            background: #4c89bf !important;
+        }
+
+        .site-main input[type=submit],.post-entry input[type=submit],.comment-respond input[type=submit] {
+            background: #4c89bf;
+        }
+
+        .post-more i, .author-profile i, .sub-text, #pagination a:hover, .post-footer-lincenses a, .lower ul li a:hover, .post-like a, .sitename, .akina_one .akina_one_time, .comment h4 a, .comment h4 a:hover {
+            color: #4c89bf;
+        }
+
+        .feature i, .feature-title span, .download, .navigator i:hover, .links ul li:before, span.ar-circle, .object, .instantclick-bar {
+            background: #4c89bf !important;
+        }
+
+        .download, .navigator i:hover, .link-title, .links ul li:hover, #pagination a:hover,#crumbs {
+            border-color: #4c89bf !important;
+        }
+
+        .entry-content a:hover, .site-info a:hover, .comment h4 a:hover, .entry-title a:hover, #archives-temp h3, span.page-numbers.current, .sorry li a:hover, .site-title a:hover {
+            color: #4c89bf !important;
+        }
+
+/* extracted from original style id=wp-custom-css */
+.post-share .x-icon {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+    font-style: normal; 
+    font-weight: bold; 
+    font-size: 16px;   
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+
+
+
+/* ===================================================================
+ * Custom Styles for Lansepeach's Blog
+ * All customizations are placed here.
+ * =================================================================== */
+
+
+/* --- 1. 修复：移除主题自带的 "代码如诗" 伪元素 --- */
+.entry-content pre::before,
+.entry-content pre::after {
+    content: none !important;
+}
+
+
+/* --- 2. 现代化文章正文样式 --- */
+.entry-content {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.75;
+    color: #333;
+}
+.entry-content h2, 
+.entry-content h3, 
+.entry-content h4 {
+    font-weight: 600;
+    line-height: 1.4;
+    margin-top: 2.8em;
+    margin-bottom: 1.2em;
+    color: #000;
+}
+.entry-content h2 { font-size: 1.75em; }
+.entry-content h3 { font-size: 1.4em; }
+.entry-content h4 { font-size: 1.1em; }
+.entry-content :not(pre) > code {
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background: rgba(0, 123, 255, 0.07);
+    color: #007bff;
+    padding: 0.2em 0.4em;
+    font-size: 0.9em;
+    border-radius: 4px;
+}
+.entry-content ul li {
+    position: relative;
+    padding-left: 1.2em;
+    margin-bottom: 0.5em;
+}
+
+
+
+
+
+/* --- 修复：移除列表外围的边框和分割线 --- */
+.entry-content ol,
+.entry-content ul {
+    border: none !important; /* 移除边框 */
+    padding-top: 0 !important; /* 移除可能的上内边距 */
+    padding-bottom: 0 !important; /* 移除可能的下内边距 */
+    box-shadow: none !important; /* 移除阴影 */
+}
+
+/* 移除列表项之间的分割线 */
+.entry-content ol > li,
+.entry-content ul > li {
+    border-top: none !important; 
+}
+
+
+
+
+
+/* --- 4. 浮动目录 (TOC) 样式 --- */
+.toc-container {
+    position: fixed;
+    top: 150px;
+
+    /* 不再按浏览器右侧定位 */
+    right: auto !important;
+
+    /* 贴近正文右侧 */
+    left: calc(50% + 550px) !important;
+
+    width: 220px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #eef0f3;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    font-size: 14px;
+    transition: opacity 0.3s;
+    opacity: 0;
+    z-index: 998;
+}
+
+.toc-container.toc-visible {
+    opacity: 1;
+}
+
+
+
+/* ==========================================================
+* 浮动目录 TOC：收回 / 展开按钮
+_==========================================================_ */
+
+/* TOC 标题栏改成左右布局 */
+.toc-container h4 {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+}
+
+/* 收回按钮 */
+.toc-toggle-btn {
+    flex: 0 0 auto !important;
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 1px solid #dbe3ea !important;
+    border-radius: 6px !important;
+    background: #ffffff !important;
+    color: #64748b !important;
+    font-size: 14px !important;
+    line-height: 22px !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+/* hover 状态 */
+.toc-toggle-btn:hover {
+    color: #007bff !important;
+    border-color: rgba(0, 123, 255, 0.4) !important;
+    background: rgba(0, 123, 255, 0.06) !important;
+}
+
+/* 收回后的目录容器 */
+.toc-container.toc-collapsed {
+    width: 48px !important;
+    padding: 10px !important;
+    overflow: hidden !important;
+}
+
+/* 收回后隐藏标题文字 */
+.toc-container.toc-collapsed h4 {
+    border-bottom: none !important;
+    margin: 0 !important;
+    padding-bottom: 0 !important;
+    justify-content: center !important;
+}
+
+/* 标题文字包裹 */
+.toc-title-text {
+    display: inline-block !important;
+    white-space: nowrap !important;
+}
+
+/* 收回时隐藏标题文字 */
+.toc-container.toc-collapsed .toc-title-text {
+    display: none !important;
+}
+
+/* 收回时隐藏目录列表 */
+.toc-container.toc-collapsed ul {
+    display: none !important;
+}
+
+/* 收回时按钮居中 */
+.toc-container.toc-collapsed .toc-toggle-btn {
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 26px !important;
+}
+
+/* 收回后稍微透明一点 */
+.toc-container.toc-collapsed {
+    opacity: 0.85 !important;
+}
+
+/* 收回后 hover 恢复明显 */
+.toc-container.toc-collapsed:hover {
+    opacity: 1 !important;
+}
+
+
+
+
+/* 屏幕不够宽时隐藏，防止遮挡正文 */
+@media (max-width: 1350px) {
+    .toc-container {
+        display: none !important;
+    }
+}
+
+.toc-container.toc-visible {
+    opacity: 1;
+}
+.toc-container h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+}
+.toc-container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+}
+.toc-container li a {
+    display: block;
+    padding: 6px 0 6px 10px;
+    color: #555;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+.toc-container li.toc-level-3 a {
+    padding-left: 25px;
+}
+.toc-container li a:hover {
+    color: #007bff;
+    background-color: #f8f9fa;
+}
+.toc-container li.active > a {
+    color: #007bff;
+    border-left-color: #007bff;
+    font-weight: 500;
+}
+@media (max-width: 1200px) {
+    .toc-container {
+        display: none;
+    }
+}
+
+
+
+/* ===================================================================
+ * List Styles Refinement V4 (Ultimate Fix for All Nesting)
+ * =================================================================== */
+
+/* --- 1. 移除主题或WP核心可能添加的边框和阴影 --- */
+.entry-content ol,
+.entry-content ul {
+    border: none !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    box-shadow: none !important;
+}
+.entry-content ol > li,
+.entry-content ul > li {
+    border-top: none !important; 
+}
+
+
+
+
+
+
+
+
+
+
+/* ===================================================================
+ * Final List Style Solution (Replaces Original Theme Styles)
+ * =================================================================== */
+
+/* --- 1. 为所有列表块（ul/ol）设置外边距和基础缩进 --- */
+.entry-content ul,
+.entry-content ol {
+    margin: 0 0 1.5em 0 !important; /* 上0 右0 下1.5em 左0 */
+    padding-left: 2em !important;   /* 统一设置内边距作为缩进 */
+    list-style-position: outside !important; /* 确保项目符号在内容外部 */
+    background: none !important; /* 强制移除背景色 */
+    border: none !important;     /* 强制移除边框 */
+    color: inherit !important;   /* 继承正文颜色 */
+}
+
+/* --- 2. 为所有列表项（li）设置统一的、紧凑的间距 --- */
+.entry-content li {
+    padding: 0 0 0 0.5em !important; /* 移除主题自带的padding，只保留项目符号和文字间距 */
+    margin-bottom: 0.5em !important;   /* 列表项之间的垂直距离 */
+    border-top: none !important;     /* 强制移除项之间的分割线 */
+}
+
+/* --- 3. 针对嵌套列表的特殊处理，移除多余间距 --- */
+.entry-content li > ul,
+.entry-content li > ol {
+    margin-top: 0.5em !important;    /* 子列表距离父项文字的距离 */
+    margin-bottom: 0 !important;   /* 子列表结束后不留额外空间 */
+}
+
+/* --- 4. 确保项目符号样式正确 --- */
+.entry-content ul {
+    list-style-type: disc !important;
+}
+.entry-content ol {
+    list-style-type: decimal !important;
+}
+
+
+
+
+
+
+/* ===================================================================
+ * Final Polish: Heading & Separator Styles
+ * =================================================================== */
+
+/* --- 1. 移除 H3 标题自带的红色括号 --- */
+.entry-content h3::before,
+.entry-content h3::after {
+    content: none !important; /* 强制移除内容 */
+}
+
+/* 确保H3标题本身和其他标题样式一致 */
+.entry-content h3 {
+    border-bottom: 1px solid #e9ecef !important; /* 确保有和其他标题一样的下划线 */
+    color: #000 !important;
+    padding-bottom: 0.3em !important;
+}
+
+
+/* --- 2. 美化 HR 分割线 --- */
+.entry-content hr.wp-block-separator {
+    background-color: #e9ecef !important; /* 使用更柔和的浅灰色 */
+    border: none !important;
+    height: 1px !important;
+    max-width: 100px !important; /* 让它变短，显得更精致 */
+    margin: 4em auto !important; /* 增加垂直间距，让章节分隔更明显 */
+}
+
+
+
+
+
+
+
+/* ==========================================================
+ * 文章正文表格强制显示与美化
+ * ========================================================== */
+
+/* 表格外层 figure */
+.entry-content figure.wp-block-table,
+.entry-content .wp-block-table {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 1.8em 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* 表格本体 */
+.entry-content figure.wp-block-table table,
+.entry-content .wp-block-table table,
+.entry-content table {
+    display: table !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    table-layout: auto !important;
+    background-color: #ffffff !important;
+    color: #333333 !important;
+    font-size: 15px !important;
+    line-height: 1.7 !important;
+    margin: 0 !important;
+}
+
+/* 强制恢复表格结构，防止主题样式覆盖 */
+.entry-content table thead {
+    display: table-header-group !important;
+}
+
+.entry-content table tbody {
+    display: table-row-group !important;
+}
+
+.entry-content table tr {
+    display: table-row !important;
+}
+
+.entry-content table th,
+.entry-content table td {
+    display: table-cell !important;
+}
+
+/* 表头和单元格 */
+.entry-content figure.wp-block-table th,
+.entry-content figure.wp-block-table td,
+.entry-content .wp-block-table th,
+.entry-content .wp-block-table td,
+.entry-content table th,
+.entry-content table td {
+    border: 1px solid #e5e7eb !important;
+    padding: 10px 12px !important;
+    text-align: left !important;
+    vertical-align: middle !important;
+    color: #333333 !important;
+    background-clip: padding-box !important;
+    word-break: break-word !important;
+}
+
+/* 表头 */
+.entry-content figure.wp-block-table thead,
+.entry-content .wp-block-table thead,
+.entry-content table thead {
+    background-color: #f8f9fa !important;
+}
+
+.entry-content figure.wp-block-table th,
+.entry-content .wp-block-table th,
+.entry-content table th {
+    font-weight: 600 !important;
+    color: #111111 !important;
+    background-color: #f8f9fa !important;
+}
+
+/* 隔行背景 */
+.entry-content figure.wp-block-table tbody tr:nth-child(even),
+.entry-content .wp-block-table tbody tr:nth-child(even),
+.entry-content table tbody tr:nth-child(even) {
+    background-color: #fafafa !important;
+}
+
+/* 表格里的 code */
+.entry-content table code {
+    white-space: nowrap;
+}
+
+/* 移动端横向滚动 */
+@media (max-width: 768px) {
+    .entry-content figure.wp-block-table,
+    .entry-content .wp-block-table {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .entry-content figure.wp-block-table table,
+    .entry-content .wp-block-table table,
+    .entry-content table {
+        min-width: 650px !important;
+    }
+}
+
+
+
+
+
+
+
+/* ==========================================================
+ * 代码块防闪烁：避免刷新时先显示原始代码样式
+ * ========================================================== */
+
+/* JS 处理前，先隐藏原始代码块 */
+.entry-content pre.wp-block-code:not(.processed-code) {
+    opacity: 0 !important;
+}
+
+/* JS 处理后，正常显示 */
+.entry-content .code-block-container pre.processed-code {
+    opacity: 1 !important;
+}
+
+/* 现代代码块淡入，减少突兀跳变 */
+.entry-content .code-block-container {
+    animation: codeBlockFadeIn 0.18s ease-out both;
+}
+
+@keyframes codeBlockFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+
+
+
+/* ==========================================================
+ * 常用现代化代码块样式：无行号 + 浅色文档风格
+ * ========================================================== */
+
+.entry-content .code-block-container {
+    margin: 2em 0 !important;
+    background: #f8fafc !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* 顶部栏 */
+.entry-content .code-block-header {
+    height: 40px !important;
+    padding: 0 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: #f1f5f9 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+}
+
+/* 语言名称 */
+.entry-content .code-block-lang {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: #64748b !important;
+}
+
+/* 不显示红黄绿三色点 */
+.entry-content .code-block-lang::before {
+    content: none !important;
+}
+
+/* 操作按钮区域 */
+.entry-content .code-block-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* 复制按钮 */
+.entry-content .code-block-actions button {
+    height: 28px !important;
+    padding: 0 10px !important;
+    margin: 0 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 7px !important;
+    background: #ffffff !important;
+    color: #64748b !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 26px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+/* 复制按钮 hover */
+.entry-content .code-block-actions button:hover {
+    color: #4c89bf !important;
+    border-color: rgba(76, 137, 191, 0.45) !important;
+    background: rgba(76, 137, 191, 0.08) !important;
+}
+
+/* 已复制状态 */
+.entry-content .code-block-actions button.copied {
+    color: #16a34a !important;
+    border-color: #86efac !important;
+    background: #f0fdf4 !important;
+}
+
+/* pre 代码区域 */
+.entry-content .code-block-container pre {
+    margin: 0 !important;
+    padding: 18px 20px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    line-height: 1.7 !important;
+    box-sizing: border-box !important;
+}
+
+/* code 本体 */
+.entry-content .code-block-container pre code {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    color: #334155 !important;
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-size: 14px !important;
+    line-height: 1.7 !important;
+    white-space: pre !important;
+    tab-size: 4 !important;
+    text-shadow: none !important;
+}
+
+/* highlight.js span 继承行高 */
+.entry-content .code-block-container pre code span {
+    font-size: inherit !important;
+    line-height: inherit !important;
+}
+
+/* 横向滚动条 */
+.entry-content .code-block-container pre::-webkit-scrollbar {
+    height: 8px !important;
+}
+
+.entry-content .code-block-container pre::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.entry-content .code-block-container pre::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 999px !important;
+}
+
+.entry-content .code-block-container pre::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8 !important;
+}
+
+/* 防止主题给代码块加伪元素 */
+.entry-content .code-block-container pre::before,
+.entry-content .code-block-container pre::after {
+    content: none !important;
+}
+
+/* 移动端 */
+@media (max-width: 768px) {
+    .entry-content .code-block-container {
+        border-radius: 10px !important;
+        margin: 1.5em 0 !important;
+    }
+
+    .entry-content .code-block-header {
+        height: 38px !important;
+        padding: 0 12px !important;
+    }
+
+    .entry-content .code-block-lang {
+        font-size: 11px !important;
+    }
+
+    .entry-content .code-block-actions button {
+        height: 26px !important;
+        padding: 0 9px !important;
+        font-size: 11px !important;
+        line-height: 24px !important;
+    }
+
+    .entry-content .code-block-container pre {
+        padding: 16px !important;
+    }
+
+    .entry-content .code-block-container pre code {
+        font-size: 13px !important;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ==========================================================
+ * 文章页主内容统一放宽 + 居中
+ * ========================================================== */
+
+:root {
+    --article-width: 980px;
+    --article-outer-width: 1100px;
+}
+
+/* 页面内容总区域 */
+#content.site-content,
+.site-content {
+    max-width: var(--article-outer-width) !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    float: none !important;
+    box-sizing: border-box !important;
+}
+
+/* 主文章容器 */
+#primary.content-area,
+.content-area,
+#main.site-main,
+.site-main {
+    max-width: var(--article-width) !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    float: none !important;
+    box-sizing: border-box !important;
+}
+
+/* 文章本体 */
+article.post,
+article.hentry,
+.entry-content {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* 文章底部：版权、标签、点赞、分享 */
+.post-footer,
+.post-footer-lincenses,
+.post-tags,
+.post-like,
+.post-share {
+    max-width: var(--article-width) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* 面包屑 */
+#crumbs {
+    max-width: var(--article-width) !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* 打赏模块 */
+.reward {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* 作者信息 */
+.author-profile {
+    max-width: var(--article-width) !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* 上一篇下一篇，如果你以后显示的话 */
+.post-squares,
+.nextprev {
+    max-width: var(--article-width) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* 评论区 */
+#comments.comments,
+.comments,
+.comments-main,
+.commentwrap,
+#respond.comment-respond,
+.comment-respond {
+    max-width: var(--article-width) !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    float: none !important;
+    box-sizing: border-box !important;
+}
+
+/* 评论输入框 */
+.commentbody,
+#comment {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* 代码块、表格、图片不要溢出 */
+.entry-content img,
+.entry-content table,
+.entry-content pre,
+.entry-content .code-block-container,
+.entry-content .wp-block-table {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* 移动端恢复自适应 */
+@media (max-width: 1100px) {
+    :root {
+        --article-width: 100%;
+        --article-outer-width: 100%;
+    }
+
+    #content.site-content,
+    .site-content,
+    #primary.content-area,
+    .content-area,
+    #main.site-main,
+    .site-main,
+    article.post,
+    article.hentry,
+    .entry-content,
+    #comments.comments,
+    .comments,
+    .comments-main,
+    .author-profile,
+    #crumbs {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        float: none !important;
+        box-sizing: border-box !important;
+    }
+
+    #primary.content-area,
+    .content-area,
+    #comments.comments,
+    .comments {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+}
+
+
+/* ==========================================================
+ * 首页「聚焦」模块居中修正
+ * ========================================================== */
+
+/* 整个模块居中 */
+.top-feature {
+    max-width: 980px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+}
+
+/* 标题居中 */
+/* 首页「本博客使用到」标题：只居中，不改字体 */
+.top-feature .fes-title {
+    text-align: center !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 24px !important;
+}
+
+/* 卡片区域居中排列 */
+.top-feature .feature-content {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 20px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 每个卡片 */
+.top-feature .feature-content li {
+    float: none !important;
+    list-style: none !important;
+    width: calc((100% - 40px) / 3) !important;
+    max-width: 300px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 图片适配 */
+.top-feature .feature-content li img {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    border-radius: 8px !important;
+}
+
+/* 移动端改成单列 */
+@media (max-width: 768px) {
+    .top-feature {
+        max-width: 100% !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .top-feature .feature-content {
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+
+    .top-feature .feature-content li {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+/* ==========================================================
+ * 首页「本博客使用到」卡片悬停层对齐修正
+ * ========================================================== */
+
+/* 每个卡片作为定位容器 */
+.top-feature .feature-content li {
+    position: relative !important;
+    overflow: hidden !important;
+    border-radius: 8px !important;
+}
+
+/* 链接撑满整个卡片 */
+.top-feature .feature-content li a {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    border-radius: 8px !important;
+}
+
+/* 图片撑满卡片 */
+.top-feature .feature-content li img {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    border-radius: 8px !important;
+}
+
+/* 悬停标题层覆盖整张图片 */
+.top-feature .feature-content li .feature-title {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: none !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+/* 渐变遮罩和文字居中 */
+.top-feature .feature-content li .foverlay {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 14px !important;
+    box-sizing: border-box !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    text-align: center !important;
+    color: #fff !important;
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+    font-weight: 500 !important;
+
+    background: linear-gradient(
+        135deg,
+        rgba(76, 137, 191, 0.78),
+        rgba(30, 64, 175, 0.72)
+    ) !important;
+
+    opacity: 0 !important;
+    transition: opacity 0.25s ease !important;
+}
+
+/* 鼠标悬停显示遮罩 */
+.top-feature .feature-content li:hover .foverlay {
+    opacity: 1 !important;
+}
+
+
+/* ==========================================================
+ * 首页「本博客使用到」卡片图片铺满 + 遮罩完全对齐
+ * ========================================================== */
+
+/* 卡片列表容器 */
+.top-feature .feature-content {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 20px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 单个卡片 */
+.top-feature .feature-content li {
+    position: relative !important;
+    float: none !important;
+    list-style: none !important;
+    width: calc((100% - 40px) / 3) !important;
+    max-width: 320px !important;
+    aspect-ratio: 16 / 9 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+    background: #f1f5f9 !important;
+}
+
+/* 链接铺满整个卡片 */
+.top-feature .feature-content li a {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    border-radius: inherit !important;
+}
+
+/* 图片保持原比例并铺满卡片 */
+.top-feature .feature-content li img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    border-radius: inherit !important;
+    transition: transform 0.35s ease !important;
+}
+
+/* 鼠标悬停时图片轻微放大，更现代 */
+.top-feature .feature-content li:hover img {
+    transform: scale(1.04) !important;
+}
+
+/* 标题层铺满卡片 */
+.top-feature .feature-content li .feature-title {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 2 !important;
+    border-radius: inherit !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+/* 渐变遮罩和文字完全覆盖图片 */
+.top-feature .feature-content li .foverlay {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    text-align: center !important;
+    color: #ffffff !important;
+    font-size: 15px !important;
+    line-height: 1.5 !important;
+    font-weight: 500 !important;
+
+    background: linear-gradient(
+        135deg,
+        rgba(76, 137, 191, 0.82),
+        rgba(30, 64, 175, 0.72)
+    ) !important;
+
+    opacity: 0 !important;
+    transition: opacity 0.25s ease !important;
+    border-radius: inherit !important;
+}
+
+/* 悬停显示渐变 */
+.top-feature .feature-content li:hover .foverlay {
+    opacity: 1 !important;
+}
+
+/* 移动端单列显示 */
+@media (max-width: 768px) {
+    .top-feature .feature-content {
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+
+    .top-feature .feature-content li {
+        width: 100% !important;
+        max-width: 100% !important;
+        aspect-ratio: 16 / 9 !important;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+/* ==========================================================
+ * MiSans 字体引入与全站应用
+ * 适用于 WordPress 额外 CSS
+ * 字体目录：
+ * /wp-content/themes/AkinaPro-master/fonts/
+ * ========================================================== */
+
+/* MiSans Regular - 正文 */
+@font-face {
+    font-family: "MiSans";
+    src: url("/theme/akinapro/fonts/MiSans-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+}
+
+/* MiSans Medium - 菜单、按钮、强调 */
+@font-face {
+    font-family: "MiSans";
+    src: url("/theme/akinapro/fonts/MiSans-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: block;
+}
+
+/* MiSans Semibold - 标题 */
+@font-face {
+    font-family: "MiSans";
+    src: url("/theme/akinapro/fonts/MiSans-Semibold.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: block;
+}
+
+/* ==========================================================
+ * 全站基础字体
+ * 不使用 body *，避免误伤 iconfont 和代码块
+ * ========================================================== */
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+}
+
+/* 常见布局、正文、导航、评论、首页模块 */
+.site,
+.wrapper,
+.site-content,
+.site-main,
+.content-area,
+.entry-content,
+.entry-content p,
+.entry-content li,
+.entry-title,
+.entry-title-info,
+.post,
+.post-entry,
+.post-footer,
+.post-footer-lincenses,
+.comments,
+.comments-main,
+.comment-respond,
+.commentbody,
+.author-profile,
+.menu,
+.lower,
+.toc-container,
+.top-feature,
+.fes-title,
+#comments,
+#crumbs {
+    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+}
+
+/* 标题统一使用 MiSans Semibold */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.entry-title,
+.entry-content h1,
+.entry-content h2,
+.entry-content h3,
+.entry-content h4,
+.fes-title,
+.toc-container h4 {
+    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+    font-weight: 600;
+}
+
+/* 正文保持常规字重 */
+body,
+.entry-content,
+.entry-content p,
+.entry-content li,
+.comments,
+.commentbody {
+    font-weight: 400;
+}
+
+/* 菜单、按钮、中等强调 */
+button,
+input[type="submit"],
+.menu a,
+.lower a,
+.code-block-actions button,
+.post-like,
+.post-share {
+    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+    font-weight: 500;
+}
+
+/* ==========================================================
+ * 代码块字体修复
+ * 代码内容保留等宽字体，不使用 MiSans
+ * ========================================================== */
+
+pre,
+code,
+kbd,
+samp,
+.entry-content pre,
+.entry-content code,
+.entry-content pre *,
+.entry-content code *,
+.entry-content .hljs,
+.entry-content .hljs *,
+.entry-content .code-block-container pre,
+.entry-content .code-block-container pre *,
+.entry-content .code-block-container code,
+.entry-content .code-block-container code * {
+    font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+/* 代码块顶部栏、语言名、复制按钮继续使用 MiSans */
+.entry-content .code-block-header,
+.entry-content .code-block-header *,
+.entry-content .code-block-lang,
+.entry-content .code-block-actions,
+.entry-content .code-block-actions *,
+.entry-content .code-block-actions button {
+    font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
+}
+
+/* ==========================================================
+ * 避免影响 iconfont 图标字体
+ * ========================================================== */
+
+.iconfont,
+.iconfont *,
+[class^="icon-"],
+[class*=" icon-"] {
+    font-family: "iconfont" !important;
+}

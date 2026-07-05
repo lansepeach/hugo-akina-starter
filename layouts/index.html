@@ -1,0 +1,26 @@
+{{ define "main" }}
+{{ $posts := where .Site.RegularPages "Type" "posts" }}
+{{ $paginator := .Paginate $posts }}
+{{ if eq $paginator.PageNumber 1 }}
+<div class="notice"><span class="notice-label">◆</span><div class="notice-content">{{ .Site.Params.notice }}</div></div>
+
+<div class="top-feature">
+  <h1 class="fes-title">{{ .Site.Params.featuresTitle | default "本博客使用到" }}</h1>
+  <div class="feature-content">
+    {{ range $i, $feature := .Site.Params.features }}
+      <li class="feature-{{ add $i 1 }}"><a href="{{ $feature.url }}" target="_blank" rel="noopener"><div class="feature-title"><span class="foverlay">{{ $feature.title }}</span></div><img src="{{ $feature.image }}" alt="{{ $feature.title }}"></a></li>
+    {{ end }}
+  </div>
+</div>
+{{ end }}
+
+<div id="primary" class="content-area post-stream">
+  <main id="main" class="site-main" role="main">
+  <h1 class="main-title">近况</h1>
+  {{ range $paginator.Pages }}
+    {{ partial "post-card.html" . }}
+  {{ end }}
+  {{ partial "pagination.html" . }}
+  </main>
+</div>
+{{ end }}

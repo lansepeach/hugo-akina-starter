@@ -1,0 +1,16 @@
+<section class="post-squares nextprev">
+  {{ with .PrevInSection }}
+  <a href="{{ .RelPermalink }}" class="full previous">
+    <div class="background" style="background-image:url('{{ .Params.featured_image }}');"></div>
+    <span class="label">上一篇文章</span>
+    <div class="info"><h3>{{ .Title }}</h3><hr></div>
+  </a>
+  {{ end }}
+  {{ with .NextInSection }}
+  <a href="{{ .RelPermalink }}" class="full next">
+    <div class="background" style="background-image:url('{{ .Params.featured_image }}');"></div>
+    <span class="label">下一篇文章</span>
+    <div class="info"><h3>{{ .Title }}</h3><hr></div>
+  </a>
+  {{ end }}
+</section>

@@ -1,0 +1,17 @@
+<footer id="colophon" class="site-footer" role="contentinfo">
+  <div class="site-info">
+    Copyright © {{ now.Format "2006" }} . All rights reserved.
+    <span class="sep"> | <a href="{{ .Site.Home.RelPermalink }}">{{ .Site.Title }}.</a> | </span>
+    Theme by <a href="https://iiong.com/" rel="nofollow" target="_blank">AkinaPro</a>. | Powered by <a href="https://gohugo.io/" target="_blank" rel="nofollow">Hugo</a>.
+    <br>
+    <p>WebSite
+      {{ with .Site.Params.icp }} | <a href="{{ $.Site.Params.icpURL }}" rel="nofollow" target="_blank">{{ . }}</a>{{ end }}
+      {{ with .Site.Params.monitorURL }} | <a href="{{ . }}" rel="nofollow" target="_blank">服务器监控</a>{{ end }}
+      <a href="/ditu" target="_blank"> | 网站地图 </a> |
+    </p>
+    <div class="footertext">
+      <p><span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span></p>
+      {{ with .Site.Params.footerSponsorImage }}<p><a href="{{ $.Site.Params.footerSponsorURL | default "#" }}" target="_blank" rel="nofollow"><img border="0" title="{{ $.Site.Params.footerSponsorTitle | default "Sponsor" }}" alt="{{ $.Site.Params.footerSponsorTitle | default "Sponsor" }}" src="{{ . }}"></a></p>{{ end }}
+    </div>
+  </div>
+</footer>

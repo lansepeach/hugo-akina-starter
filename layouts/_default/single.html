@@ -1,0 +1,23 @@
+{{ define "main" }}
+<div id="primary" class="content-area">
+  <main id="main" class="site-main" role="main">
+    <article id="post-{{ .Params.wp_id | default .File.BaseFileName }}" class="post-{{ .Params.wp_id | default .File.BaseFileName }} post type-post status-publish format-standard hentry{{ range .Params.categories }}{{ if eq . "日常" }} category-4{{ else if eq . "技术" }} category-18{{ else if eq . "树莓派" }} category-16{{ else if eq . "福利" }} category-5{{ else if eq . "随便写写" }} category-14{{ end }}{{ end }}">
+      <div class="entry-content">
+        {{ .Content }}
+      </div>
+      {{ if eq .Type "posts" }}
+        {{ partial "post-footer.html" . }}
+      {{ end }}
+    </article>
+    {{ if eq .Type "posts" }}
+      {{ partial "post-nextprev.html" . }}
+      {{ partial "author-profile.html" . }}
+      <div id="tocContainer" class="toc-container" aria-label="文章目录">
+        <h4><span class="toc-title-text">文章目录</span><button type="button" class="toc-toggle-btn" data-toggle-toc aria-label="收起目录">‹</button></h4>
+        <ul id="tocList"></ul>
+      </div>
+    {{ end }}
+  </main>
+</div>
+{{ if eq .Type "posts" }}{{ partial "comments.html" . }}{{ end }}
+{{ end }}

@@ -1,0 +1,9 @@
+{{ define "main" }}
+<section class="post-stream page-list">
+  <h1 class="main-title">{{ .Title }}</h1>
+  {{ range .Paginator.Pages }}
+    {{ partial "post-card.html" . }}
+  {{ end }}
+  {{ partial "pagination.html" . }}
+</section>
+{{ end }}

@@ -1,0 +1,46 @@
+{{ define "main" }}
+<article class="post-item post-{{ .Params.wp_id | default .File.BaseFileName }} page type-page status-publish hentry youlian-page">
+  <span class="linkss-title">{{ .Title }}</span>
+  <div class="entry-content friend-links-page">
+    {{ .Content }}
+    {{ with .Site.Params.friendLinks }}
+    <div class="links" aria-label="友情链接">
+      <ul class="link-items fontSmooth">
+        {{ range . }}
+        {{ $name := .name | default .title }}
+        {{ $description := .description | default .title }}
+        <li class="link-item">
+          <a class="link-item-inner effect-apollo" title="{{ .title | default $description }}" href="{{ .url }}" target="_blank" rel="noopener noreferrer nofollow">
+            <span class="link-avatar" aria-hidden="true">
+              {{ with .avatar }}
+              <img src="{{ . }}" alt="" loading="lazy" decoding="async">
+              {{ else }}
+              {{ $.Scratch.Set "avatarText" ($name | truncate 1 "") }}
+              {{ with .avatarText }}{{ $.Scratch.Set "avatarText" . }}{{ end }}
+              {{ $.Scratch.Get "avatarText" }}
+              {{ end }}
+            </span>
+            <span class="link-copy"><span class="sitename">{{ $name }}</span><span class="linkdes">{{ $description }}</span></span>
+          </a>
+        </li>
+        {{ end }}
+      </ul>
+    </div>
+    {{ end }}
+
+    {{ if or .Site.Params.friendLinksApplyText .Site.Params.myLink }}
+    <div class="link-apply">
+      <h3 class="link-title">{{ .Site.Params.friendLinksApplyTitle | default "交换友链" }}</h3>
+      {{ with .Site.Params.friendLinksApplyText }}<p>{{ . }}</p>{{ end }}
+      {{ with .Site.Params.myLink }}
+      <div class="my-link-card">
+        <strong>{{ .title }}</strong>
+        <span>{{ .url }}</span>
+        <span>{{ .description }}</span>
+      </div>
+      {{ end }}
+    </div>
+    {{ end }}
+  </div>
+</article>
+{{ end }}

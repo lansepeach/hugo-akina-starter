@@ -1,0 +1,66 @@
+<header class="site-header" role="banner">
+  <div class="site-top">
+    <div class="site-branding">
+      <div class="site-title"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.logo }}" alt="{{ .Site.Title }}"></a></div>
+    </div>
+    <div class="searchbox"><button class="js-toggle-search iconsearch search-toggle iconfont" type="button" aria-label="搜索" data-toggle-search>&#xe6a2;</button></div>
+    <div class="lower">
+      <nav>
+        <ul class="menu">
+          {{ range .Site.Menus.main }}
+            <li class="{{ if .HasChildren }}menu-item-has-children{{ end }}"><a href="{{ .URL }}">{{ .Name }}</a>
+              {{ if .HasChildren }}<ul class="sub-menu">{{ range .Children }}<li><a href="{{ .URL }}">{{ .Name }}</a></li>{{ end }}</ul>{{ end }}
+            </li>
+          {{ end }}
+        </ul>
+      </nav>
+    </div>
+    <nav id="topMenu" class="menu_click"><div></div><i class="i_1"></i><i class="i_2"></i></nav>
+  </div>
+</header>
+<div class="blank"></div>
+
+{{ $showHomeHero := false }}
+{{ if .IsHome }}
+  {{ $homePosts := where .Site.RegularPages "Type" "posts" }}
+  {{ $homePaginator := .Paginate $homePosts }}
+  {{ $showHomeHero = eq $homePaginator.PageNumber 1 }}
+{{ end }}
+
+{{ if $showHomeHero }}
+<div class="headertop">
+<div id="centerbg">
+  <div class="focusinfo">
+    <div class="header-tou"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.avatar }}" alt="{{ .Site.Params.author }}"></a></div>
+    <div class="header-info"><p>{{ .Site.Params.signature }}</p></div>
+    <div class="top-social">
+      {{ $icons := dict "email" "&#xe7ab;" "qq" "&#xe621;" "weibo" "&#xe623;" "bili" "&#xe633;" "github" "Git" }}
+      {{ range .Site.Params.socials }}
+      <li class="{{ .name }}"><a href="{{ .url }}" target="_blank" rel="noopener noreferrer" title="{{ .label | default .name }}"><i class="iconfont">{{ index $icons .name | default (.label | default .name) | safeHTML }}</i></a></li>
+      {{ end }}
+      {{ with .Site.Params.wechatImage }}
+      <li class="wechat"><a><i class="iconfont">&#xe61e;</i></a><ul><a href="#"><img src="{{ . }}" alt="Wechat"></a></ul></li>
+      {{ end }}
+    </div>
+  </div>
+</div>
+</div>
+{{ else if and (eq .Kind "page") (eq .Type "posts") }}
+<div class="headertop">
+  <div id="centerbg_single" style="background-image: url('{{ with .Params.featured_image }}{{ . }}{{ else }}{{ .Site.Params.heroImage }}{{ end }}')">
+    <div class="focusinfo">
+      <div class="header-info_single">
+        <h1 class="entry-title">{{ .Title }}</h1>
+        <span class="entry-title-info">
+          {{ .Date.Format "2006-01-02" }} -
+          {{ .Params.views | default 0 }} Views -
+          0 Goods -
+          <a href="{{ .RelPermalink }}#comments">{{ .Params.comment_count | default 0 }} 条评论</a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{{ else if not .IsHome }}
+<div class="headertop"></div>
+{{ end }}

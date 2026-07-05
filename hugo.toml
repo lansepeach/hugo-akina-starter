@@ -1,0 +1,119 @@
+baseURL = "https://example.com/"
+languageCode = "zh-Hans"
+title = "Akina Hugo Starter"
+hasCJKLanguage = true
+summaryLength = 120
+enableRobotsTXT = true
+enableEmoji = true
+
+[pagination]
+  pagerSize = 10
+
+[permalinks]
+  posts = "/archives/:slug/"
+  page = "/:slug/"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    noClasses = false
+    codeFences = true
+    guessSyntax = true
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
+  section = ["HTML", "RSS"]
+
+[params]
+  description = "A Hugo starter inspired by AkinaPro."
+  keywords = "Hugo,Akina,blog,starter"
+  author = "Your Name"
+  location = "Earth"
+  avatar = "/images/avatar.svg"
+  logo = "/images/logo.svg"
+  favicon = "/images/favicon.svg"
+  heroImage = "/images/hero.svg"
+  signature = "Write something about yourself here."
+  notice = "Welcome to this Hugo starter."
+  icp = ""
+  icpURL = "https://beian.miit.gov.cn/"
+  monitorURL = ""
+  startDate = "2024-01-01"
+  color = "#4c89bf"
+  walineServerURL = ""
+  featuresTitle = "Powered By"
+  friendLinksApplyTitle = "Exchange Links"
+  friendLinksApplyText = "Leave your site name, URL, avatar and description in the message board."
+
+  [params.myLink]
+    title = "Akina Hugo Starter"
+    url = "https://example.com/"
+    description = "A clean example site for this Hugo starter."
+
+[[params.socials]]
+  name = "email"
+  label = "Email"
+  url = "mailto:hello@example.com"
+
+[[params.socials]]
+  name = "github"
+  label = "GitHub"
+  url = "https://github.com/your-name"
+
+[[params.features]]
+  title = "Hugo Static Site"
+  url = "https://gohugo.io/"
+  image = "/images/features/hugo.svg"
+
+[[params.features]]
+  title = "Local Theme Assets"
+  url = "https://example.com/"
+  image = "/images/features/assets.svg"
+
+[[params.features]]
+  title = "Waline Ready"
+  url = "https://waline.js.org/"
+  image = "/images/features/comments.svg"
+
+[[params.friendLinks]]
+  name = "Example Friend"
+  url = "https://example.com/"
+  description = "A sample friend link using CSS avatar."
+  title = "Example friend site"
+  avatarText = "E"
+
+[[params.friendLinks]]
+  name = "Image Avatar"
+  url = "https://example.org/"
+  description = "A sample friend link using local avatar image."
+  title = "Local image avatar example"
+  avatar = "/images/friends/example-avatar.svg"
+
+[menu]
+  [[menu.main]]
+    name = "Home"
+    url = "/"
+    weight = 1
+  [[menu.main]]
+    name = "Sitemap"
+    url = "/ditu/"
+    weight = 2
+  [[menu.main]]
+    name = "Archives"
+    url = "/archives/"
+    parent = "Sitemap"
+    weight = 21
+  [[menu.main]]
+    name = "About"
+    url = "/about/"
+    weight = 3
+  [[menu.main]]
+    name = "Friends"
+    url = "/youlian/"
+    weight = 4
+  [[menu.main]]
+    name = "Message"
+    url = "/message/"
+    weight = 5
