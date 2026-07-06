@@ -141,8 +141,8 @@ title = "Akina Hugo Starter"
 可选值：
 
 - `system`：使用系统中文字体栈，不加载 WebFont，最快，适合公开 starter 默认配置。
-- `misans-cdn`：使用小米官方 CDN 的 `MiSans_VF` 可变字体。官方方案会按 `unicode-range` 切片，并使用 `display=swap`，比一次加载 3 个完整本地字体快得多，但浏览器会自动请求小米 CDN。
-- `misans-local`：使用本地 `static/theme/akinapro/fonts/` 下的 3 个完整 MiSans 字体文件。完全本地化，但字体文件较大。
+- `misans-cdn`：使用小米官方 CDN 的 `MiSans_VF` 可变字体。官方方案会按 `unicode-range` 切片，比一次加载 3 个完整本地字体快得多，但浏览器会自动请求小米 CDN。启用后页面会先显示加载动画，等待页面和 MiSans 字体就绪后再显示正文，避免系统字体切换到 MiSans 时出现闪字或重影。
+- `misans-local`：使用本地 `static/theme/akinapro/fonts/` 下的 3 个完整 MiSans 字体文件。完全本地化，但字体文件较大。启用后同样会先显示加载动画，等待本地 MiSans 字体就绪后再显示正文。
 
 示例，启用官方 MiSans CDN 切片字体：
 
@@ -160,7 +160,9 @@ title = "Akina Hugo Starter"
   preload = false
 ```
 
-`preload = true` 只对 `misans-local` 生效。完整 CJK 字体很大，通常不建议开启。
+MiSans 模式使用 `font-display: block`，并且字体族只指定 MiSans，不再先显示系统字体作为过渡。加载动画最长等待约 `4.5` 秒；如果字体网络异常，会自动放行页面，避免一直停在加载界面。
+
+`preload = true` 只对 `misans-local` 生效。完整 CJK 字体很大，通常不建议开启，除非你明确接受首屏下载更多字体资源。
 
 ## 菜单配置
 
