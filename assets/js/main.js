@@ -7,6 +7,7 @@
   let searchIndex = null;
   let mobileMenuScrollY = 0;
 
+  setupFontGate();
   setupSiteScrollbar();
   setupPageTransition();
   setupHeaderScroll();
@@ -77,6 +78,33 @@
     }
     mobilePanel.setAttribute('aria-hidden', open ? 'false' : 'true');
     document.querySelectorAll('[data-toggle-menu]').forEach((button) => button.classList.toggle('open', open));
+  }
+
+  function setupFontGate() {
+    const root = document.documentElement;
+    if (!root.classList.contains('font-gated')) return;
+
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      root.classList.remove('font-loading');
+      window.setTimeout(() => {
+        document.querySelectorAll('.site-font-loader').forEach((loader) => loader.remove());
+      }, 360);
+    };
+
+    const waitForLoad = new Promise((resolve) => {
+      if (document.readyState === 'complete') resolve();
+      else window.addEventListener('load', resolve, { once: true });
+    });
+    const waitForFonts = document.fonts && document.fonts.ready ? document.fonts.ready.catch(() => {}) : Promise.resolve();
+    const timeout = new Promise((resolve) => window.setTimeout(resolve, 4500));
+
+    Promise.race([Promise.all([waitForLoad, waitForFonts]), timeout]).then(release);
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) release();
+    });
   }
 
   function setupHeaderScroll() {

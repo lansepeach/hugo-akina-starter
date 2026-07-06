@@ -1,5 +1,8 @@
 <!doctype html>
-<html lang="{{ .Site.LanguageCode | default "zh-Hans" }}">
+{{ $fontProvider := "system" }}
+{{ with .Site.Params.font }}{{ with .provider }}{{ $fontProvider = . }}{{ end }}{{ end }}
+{{ $gateFont := ne $fontProvider "system" }}
+<html lang="{{ .Site.LanguageCode | default "zh-Hans" }}"{{ if $gateFont }} class="font-gated font-loading"{{ end }}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +12,12 @@
     html { overflow-y: scroll !important; scrollbar-gutter: stable !important; }
     html::-webkit-scrollbar, body::-webkit-scrollbar, ::-webkit-scrollbar { width: 0 !important; height: 0 !important; }
     html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, ::-webkit-scrollbar-track { background: transparent !important; }
+    html.font-loading, html.font-loading body { overflow: hidden !important; }
+    html.font-loading #index, html.font-loading .search-overlay { opacity: 0; }
+    .site-font-loader { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(248,252,255,.98), rgba(239,247,255,.96)); transition: opacity .28s ease, visibility .28s ease; }
+    .site-font-loader::before { content: ""; width: 42px; height: 42px; border: 3px solid rgba(76,137,191,.18); border-top-color: rgba(76,137,191,.78); border-radius: 50%; animation: page-transition-spin .72s linear infinite; }
+    html:not(.font-loading) .site-font-loader { opacity: 0; visibility: hidden; pointer-events: none; }
+    @keyframes page-transition-spin { to { transform: rotate(360deg); } }
   </style>
   <title>{{ if .IsHome }}{{ .Site.Title }} | {{ .Site.Params.description }}{{ else }}{{ .Title }} | {{ .Site.Title }}{{ end }}</title>
   <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
@@ -26,6 +35,7 @@
   <link rel="stylesheet" href="{{ $style.RelPermalink }}">
 </head>
 <body data-rsssl="1" data-search-index="{{ "index.json" | relURL }}" class="{{ if .IsHome }}home blog hfeed{{ else if and (eq .Kind "page") (eq .Type "posts") }}wp-singular post-template-default single single-post postid-{{ .Params.wp_id | default .File.BaseFileName }} single-format-standard wp-theme-AkinaPro-master{{ else if eq .Layout "archives" }}wp-singular page-template page-template-page-archive page-template-page-archive-php page page-id-{{ .Params.wp_id | default .File.BaseFileName }} wp-theme-AkinaPro-master{{ else if eq .Layout "youlian" }}wp-singular page-template page-template-page-links page-template-page-links-php page page-id-{{ .Params.wp_id | default .File.BaseFileName }} wp-theme-AkinaPro-master{{ else }}page hfeed{{ end }}">
+  {{ if $gateFont }}<div class="site-font-loader" aria-hidden="true"></div>{{ end }}
   <section id="index">
     {{ partial "mobile-nav.html" . }}
     <div id="page" class="site wrapper">

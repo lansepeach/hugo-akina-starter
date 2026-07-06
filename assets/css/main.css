@@ -1,6 +1,12 @@
 /* Hugo compatibility layer. The visual baseline is the original AkinaPro CSS plus the extracted WordPress final custom CSS. */
 :root { --akina-main: #4c89bf; }
 
+html,
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 /* Keep the original WordPress page hierarchy usable in Hugo. */
 #page.site.wrapper {
   width: 100%;
@@ -791,11 +797,6 @@ body::-webkit-scrollbar-thumb:hover,
   height: 0;
 }
 
-@keyframes page-soft-enter {
-  from { opacity: .985; }
-  to { opacity: 1; }
-}
-
 @media (min-width: 861px) {
   html {
     overflow-x: hidden !important;
@@ -805,7 +806,6 @@ body::-webkit-scrollbar-thumb:hover,
   body {
     overflow-x: hidden !important;
     overflow-y: visible !important;
-    animation: page-soft-enter .18s ease-out both;
   }
 
   #index,
