@@ -29,9 +29,9 @@
   <link rel="stylesheet" href="{{ "theme/akinapro/highlight/highlight.min.css" | relURL }}">
   <link rel="stylesheet" href="{{ "theme/akinapro/highlight/github.min.css" | relURL }}">
   <script src="{{ "theme/akinapro/highlight/highlight.min.js" | relURL }}"></script>
-  {{ $wpFinal := resources.Get "css/wp-final.css" | minify | fingerprint }}
+  {{ $wpFinal := resources.Get "css/wp-final.css" | minify }}
   <link rel="stylesheet" href="{{ $wpFinal.RelPermalink }}">
-  {{ $style := resources.Get "css/main.css" | minify | fingerprint }}
+  {{ $style := resources.Get "css/main.css" | minify }}
   <link rel="stylesheet" href="{{ $style.RelPermalink }}">
 </head>
 <body data-rsssl="1" data-search-index="{{ "index.json" | relURL }}" class="{{ if .IsHome }}home blog hfeed{{ else if and (eq .Kind "page") (eq .Type "posts") }}wp-singular post-template-default single single-post postid-{{ .Params.wp_id | default .File.BaseFileName }} single-format-standard wp-theme-AkinaPro-master{{ else if eq .Layout "archives" }}wp-singular page-template page-template-page-archive page-template-page-archive-php page page-id-{{ .Params.wp_id | default .File.BaseFileName }} wp-theme-AkinaPro-master{{ else if eq .Layout "youlian" }}wp-singular page-template page-template-page-links page-template-page-links-php page page-id-{{ .Params.wp_id | default .File.BaseFileName }} wp-theme-AkinaPro-master{{ else }}page hfeed{{ end }}">
@@ -47,7 +47,32 @@
     </div>
   </section>
   {{ partial "search.html" . }}
-  {{ $main := resources.Get "js/main.js" | minify | fingerprint }}
+  {{ if $gateFont }}
+  <script>
+    (function(){
+      var root = document.documentElement;
+      if (!root.classList.contains('font-gated')) return;
+      var done = false;
+      function release(){
+        if (done) return;
+        done = true;
+        root.classList.remove('font-loading');
+        setTimeout(function(){
+          document.querySelectorAll('.site-font-loader').forEach(function(loader){ loader.remove(); });
+        }, 360);
+      }
+      var waitLoad = new Promise(function(resolve){
+        if (document.readyState === 'complete') resolve();
+        else window.addEventListener('load', resolve, { once: true });
+      });
+      var waitFonts = document.fonts && document.fonts.ready ? document.fonts.ready.catch(function(){}) : Promise.resolve();
+      var timeout = new Promise(function(resolve){ setTimeout(resolve, 4500); });
+      Promise.race([Promise.all([waitLoad, waitFonts]), timeout]).then(release);
+      window.addEventListener('pageshow', function(event){ if (event.persisted) release(); });
+    })();
+  </script>
+  {{ end }}
+  {{ $main := resources.Get "js/main.js" | minify }}
   <script src="{{ $main.RelPermalink }}" defer></script>
   {{ block "scripts" . }}{{ end }}
 </body>
