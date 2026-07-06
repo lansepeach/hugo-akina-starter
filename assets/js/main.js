@@ -89,6 +89,12 @@
     document.body.appendChild(bar);
 
     let ticking = false;
+    let dragging = false;
+    let dragStartY = 0;
+    let dragStartScroll = 0;
+    let currentTrackHeight = 0;
+    let currentThumbHeight = 0;
+    let currentMaxScroll = 0;
     const update = () => {
       ticking = false;
       const doc = document.documentElement;
@@ -96,12 +102,15 @@
       const scrollHeight = Math.max(doc.scrollHeight, document.body.scrollHeight);
       const viewport = window.innerHeight || doc.clientHeight;
       const maxScroll = Math.max(0, scrollHeight - viewport);
+      currentMaxScroll = maxScroll;
       if (maxScroll <= 1) {
         bar.classList.remove('is-visible');
         return;
       }
       const trackHeight = Math.max(0, viewport - 16);
       const thumbHeight = Math.max(36, Math.round(trackHeight * viewport / scrollHeight));
+      currentTrackHeight = trackHeight;
+      currentThumbHeight = thumbHeight;
       const maxThumbTop = Math.max(0, trackHeight - thumbHeight);
       const thumbTop = Math.round(maxThumbTop * scrollTop / maxScroll);
       thumb.style.height = `${thumbHeight}px`;
@@ -118,6 +127,37 @@
     window.addEventListener('scroll', requestUpdate, { passive: true });
     window.addEventListener('resize', requestUpdate);
     window.addEventListener('load', requestUpdate, { once: true });
+    thumb.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      dragging = true;
+      dragStartY = event.clientY;
+      dragStartScroll = window.scrollY || document.documentElement.scrollTop || 0;
+      bar.classList.add('is-dragging');
+      thumb.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+    thumb.addEventListener('pointermove', (event) => {
+      if (!dragging || currentMaxScroll <= 0) return;
+      const maxThumbTop = Math.max(1, currentTrackHeight - currentThumbHeight);
+      const delta = event.clientY - dragStartY;
+      window.scrollTo(0, dragStartScroll + delta * currentMaxScroll / maxThumbTop);
+    });
+    const stopDrag = (event) => {
+      if (!dragging) return;
+      dragging = false;
+      bar.classList.remove('is-dragging');
+      if (event && thumb.hasPointerCapture(event.pointerId)) thumb.releasePointerCapture(event.pointerId);
+    };
+    thumb.addEventListener('pointerup', stopDrag);
+    thumb.addEventListener('pointercancel', stopDrag);
+    bar.addEventListener('pointerdown', (event) => {
+      if (event.target === thumb || event.button !== 0 || currentMaxScroll <= 0) return;
+      const rect = bar.getBoundingClientRect();
+      const targetTop = event.clientY - rect.top - currentThumbHeight / 2;
+      const maxThumbTop = Math.max(1, currentTrackHeight - currentThumbHeight);
+      window.scrollTo({ top: targetTop * currentMaxScroll / maxThumbTop, behavior: 'smooth' });
+      event.preventDefault();
+    });
     requestUpdate();
     window.setTimeout(requestUpdate, 300);
     window.setTimeout(requestUpdate, 1000);

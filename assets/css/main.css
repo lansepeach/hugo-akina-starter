@@ -725,7 +725,7 @@ body::-webkit-scrollbar-thumb:hover,
     bottom: 8px;
     z-index: 99998;
     width: 8px;
-    pointer-events: none;
+    pointer-events: auto;
     opacity: 0;
     transition: opacity .18s ease;
   }
@@ -743,6 +743,16 @@ body::-webkit-scrollbar-thumb:hover,
     border-radius: 999px;
     background: rgba(76, 137, 191, .48);
     box-shadow: 0 1px 5px rgba(76, 137, 191, .18);
+    cursor: grab;
+    pointer-events: auto;
+    user-select: none;
+    touch-action: none;
+  }
+
+  .site-scrollbar-thumb:active,
+  .site-scrollbar.is-dragging .site-scrollbar-thumb {
+    cursor: grabbing;
+    background: rgba(76, 137, 191, .72);
   }
 }
 
