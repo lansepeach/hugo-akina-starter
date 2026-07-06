@@ -9,6 +9,7 @@
 
   setupSiteScrollbar();
   setupPageTransition();
+  setupHeaderScroll();
 
   document.querySelectorAll('[data-toggle-search]').forEach((button) => {
     button.addEventListener('click', async () => {
@@ -76,6 +77,40 @@
     }
     mobilePanel.setAttribute('aria-hidden', open ? 'false' : 'true');
     document.querySelectorAll('[data-toggle-menu]').forEach((button) => button.classList.toggle('open', open));
+  }
+
+  function setupHeaderScroll() {
+    const header = document.querySelector('.site-header');
+    if (!header) return;
+
+    let lastScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    let ticking = false;
+
+    const update = () => {
+      ticking = false;
+      const currentScrollY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      const atTop = currentScrollY <= 2;
+
+      header.classList.toggle('nav-is-scrolled', !atTop);
+      if (atTop || currentScrollY < lastScrollY - 6) {
+        header.classList.remove('nav-is-hidden');
+      } else if (currentScrollY > lastScrollY + 6 && currentScrollY > 120) {
+        header.classList.add('nav-is-hidden');
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    window.addEventListener('pageshow', requestUpdate);
+    update();
   }
 
   function setupSiteScrollbar() {

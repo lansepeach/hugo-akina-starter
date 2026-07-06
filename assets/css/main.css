@@ -30,6 +30,32 @@
 
 .search-toggle:hover { color: var(--akina-main) !important; }
 
+.site-header {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: translateY(0);
+  z-index: 1000 !important;
+  transition: background-color .25s ease, box-shadow .25s ease, transform .28s ease, backdrop-filter .25s ease !important;
+  will-change: transform;
+}
+
+.site-header.nav-is-scrolled {
+  background: rgba(255, 255, 255, .82) !important;
+  box-shadow: 0 8px 28px rgba(28, 52, 73, .08) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+  backdrop-filter: blur(14px) saturate(135%);
+}
+
+.site-header.nav-is-hidden {
+  transform: translateY(-120%);
+}
+
+.site-header.nav-is-scrolled .lower li ul {
+  background: rgba(255, 255, 255, .95) !important;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
 .header-tou {
   position: relative !important;
   z-index: 20 !important;
