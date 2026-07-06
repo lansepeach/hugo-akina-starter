@@ -1,6 +1,12 @@
-# Akina Hugo Starter
+# Hugo Akina Starter
 
 一个可直接上传到 GitHub 的 Hugo 博客示例项目。它保留了 AkinaPro 风格的布局、移动端菜单、归档页、网站地图、友链页、静态旧评论展示和 Waline 预留能力，同时把原站个人内容替换成了示例配置与占位资源。
+
+## 致谢和来源
+
+本项目是面向 Hugo 的移植和再整理版本，项目入口为 [Hugo Akina Starter](https://github.com/lansepeach/hugo-akina-starter)。视觉和交互风格来源于 Akina 系列主题，并在迁移过程中做了 Hugo 模板化、静态资源本地化、移动端、搜索、评论和 GitHub Pages 部署适配。
+
+感谢 Akina 原作者 Fuzzz，以及 AkinaPro 魔改版本作者 [淮城一只猫](https://iiong.com/) 对 Akina 风格主题的设计和改进。本项目不再以 AkinaPro 作为当前 Hugo 版本的主题署名，页脚统一指向 Hugo Akina Starter 项目。
 
 ## 特性
 
