@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="{{ .Site.Params.color | default "#4c89bf" }}">
+  <style>
+    html, body { overflow-x: hidden !important; scrollbar-width: none !important; }
+    html { overflow-y: scroll !important; scrollbar-gutter: stable !important; }
+    html::-webkit-scrollbar, body::-webkit-scrollbar, ::-webkit-scrollbar { width: 0 !important; height: 0 !important; }
+    html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, ::-webkit-scrollbar-track { background: transparent !important; }
+  </style>
   <title>{{ if .IsHome }}{{ .Site.Title }} | {{ .Site.Params.description }}{{ else }}{{ .Title }} | {{ .Site.Title }}{{ end }}</title>
   <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
   <meta name="keywords" content="{{ .Site.Params.keywords }}">

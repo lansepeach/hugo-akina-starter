@@ -7,6 +7,9 @@
   let searchIndex = null;
   let mobileMenuScrollY = 0;
 
+  setupSiteScrollbar();
+  setupPageTransition();
+
   document.querySelectorAll('[data-toggle-search]').forEach((button) => {
     button.addEventListener('click', async () => {
       if (searchOverlay && searchOverlay.classList.contains('open')) closeSearch();
@@ -73,6 +76,94 @@
     }
     mobilePanel.setAttribute('aria-hidden', open ? 'false' : 'true');
     document.querySelectorAll('[data-toggle-menu]').forEach((button) => button.classList.toggle('open', open));
+  }
+
+  function setupSiteScrollbar() {
+    if (!window.matchMedia('(min-width: 861px)').matches) return;
+    const bar = document.createElement('div');
+    const thumb = document.createElement('div');
+    bar.className = 'site-scrollbar';
+    thumb.className = 'site-scrollbar-thumb';
+    bar.setAttribute('aria-hidden', 'true');
+    bar.appendChild(thumb);
+    document.body.appendChild(bar);
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const doc = document.documentElement;
+      const scrollTop = window.scrollY || doc.scrollTop || 0;
+      const scrollHeight = Math.max(doc.scrollHeight, document.body.scrollHeight);
+      const viewport = window.innerHeight || doc.clientHeight;
+      const maxScroll = Math.max(0, scrollHeight - viewport);
+      if (maxScroll <= 1) {
+        bar.classList.remove('is-visible');
+        return;
+      }
+      const trackHeight = Math.max(0, viewport - 16);
+      const thumbHeight = Math.max(36, Math.round(trackHeight * viewport / scrollHeight));
+      const maxThumbTop = Math.max(0, trackHeight - thumbHeight);
+      const thumbTop = Math.round(maxThumbTop * scrollTop / maxScroll);
+      thumb.style.height = `${thumbHeight}px`;
+      thumb.style.transform = `translateY(${thumbTop}px)`;
+      bar.classList.add('is-visible');
+    };
+
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    window.addEventListener('load', requestUpdate, { once: true });
+    requestUpdate();
+    window.setTimeout(requestUpdate, 300);
+    window.setTimeout(requestUpdate, 1000);
+  }
+
+  function setupPageTransition() {
+    const mask = document.createElement('div');
+    mask.className = 'page-transition-mask';
+    mask.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(mask);
+
+    window.addEventListener('pageshow', hidePageTransition);
+    window.addEventListener('pagehide', showPageTransition);
+
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest && event.target.closest('a[href]');
+      if (!shouldTransitionLink(event, link)) return;
+      event.preventDefault();
+      showPageTransition();
+      window.setTimeout(() => {
+        window.location.href = link.href;
+      }, 160);
+    });
+  }
+
+  function showPageTransition() {
+    document.documentElement.classList.add('page-transitioning');
+    document.body.classList.add('page-transitioning');
+  }
+
+  function hidePageTransition() {
+    document.documentElement.classList.remove('page-transitioning');
+    document.body.classList.remove('page-transitioning');
+  }
+
+  function shouldTransitionLink(event, link) {
+    if (!link || event.defaultPrevented) return false;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+    if (link.target && link.target !== '_self') return false;
+    if (link.hasAttribute('download')) return false;
+    const href = link.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return false;
+    const url = new URL(link.href, window.location.href);
+    if (url.origin !== window.location.origin) return false;
+    if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return false;
+    return true;
   }
 
   async function ensureSearchIndex() {

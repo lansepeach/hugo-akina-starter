@@ -685,6 +685,160 @@ body {
 
 html {
   scrollbar-gutter: stable;
+  scrollbar-width: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent !important;
+  border-radius: 999px !important;
+  background: rgba(76, 137, 191, .45) !important;
+  background-clip: content-box !important;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(76, 137, 191, .68) !important;
+  background-clip: content-box !important;
+}
+
+@media (min-width: 861px) {
+  .site-scrollbar {
+    position: fixed;
+    top: 8px;
+    right: 4px;
+    bottom: 8px;
+    z-index: 99998;
+    width: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease;
+  }
+
+  .site-scrollbar.is-visible {
+    opacity: 1;
+  }
+
+  .site-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    right: 1px;
+    width: 6px;
+    min-height: 36px;
+    border-radius: 999px;
+    background: rgba(76, 137, 191, .48);
+    box-shadow: 0 1px 5px rgba(76, 137, 191, .18);
+  }
+}
+
+#mo-nav:not(.open) {
+  scrollbar-width: none;
+}
+
+#mo-nav:not(.open)::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@keyframes page-soft-enter {
+  from { opacity: .985; }
+  to { opacity: 1; }
+}
+
+@media (min-width: 861px) {
+  html {
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+  }
+
+  body {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    animation: page-soft-enter .18s ease-out both;
+  }
+
+  #index,
+  #page,
+  #page.wrapper,
+  #page.site.wrapper {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  #mo-nav,
+  #mo-nav.mobile-panel {
+    display: none !important;
+    overflow: hidden !important;
+  }
+}
+
+.page-transition-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  background: rgba(248, 252, 255, .92);
+  backdrop-filter: blur(10px);
+  transition: opacity .18s ease, visibility .18s ease;
+}
+
+.page-transition-mask::before {
+  content: "";
+  width: 42px;
+  height: 42px;
+  border: 3px solid rgba(76, 137, 191, .18);
+  border-top-color: rgba(76, 137, 191, .78);
+  border-radius: 50%;
+  animation: page-transition-spin .72s linear infinite;
+}
+
+html.page-transitioning,
+body.page-transitioning {
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+html.page-transitioning::-webkit-scrollbar,
+body.page-transitioning::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+html.page-transitioning .page-transition-mask {
+  opacity: 1;
+  visibility: visible;
+}
+
+@keyframes page-transition-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-mask,
+  .page-transition-mask::before {
+    transition: none;
+    animation: none;
+  }
 }
 
 *,
@@ -762,8 +916,7 @@ html {
     left: 0 !important;
     top: 0 !important;
     z-index: 1000 !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
+    overflow: hidden !important;
     background: rgba(255, 255, 255, .98) !important;
     box-shadow: 8px 0 22px rgba(15, 23, 42, .12) !important;
     transform: translateX(-100%) !important;
@@ -1054,6 +1207,8 @@ html {
   #mo-nav.open {
     transform: none !important;
     opacity: 1 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
   }
 
   #mo-nav::before {
