@@ -655,7 +655,32 @@ hugo --minify --cleanDestinationDir
 
 ### GitHub Pages
 
-推荐使用 GitHub Actions 构建 Hugo，并把构建结果发布到 Pages。不同仓库的 Pages 设置不同，这里只保留源码项目，不提交 `public/`。
+推荐使用 GitHub Actions 构建 Hugo，并把构建结果发布到 Pages。
+
+本项目已包含 workflow：
+
+```text
+.github/workflows/pages.yml
+```
+
+使用方式：
+
+1. 推送代码到 GitHub。
+2. 打开仓库 `Settings -> Pages`。
+3. `Build and deployment` 的 `Source` 选择 `GitHub Actions`。
+4. 推送到 `main` 分支后会自动构建并发布。
+
+这个 workflow 会在构建时自动使用 GitHub Pages 提供的正式地址作为 `baseURL`，发布后的访问地址通常是：
+
+```text
+https://你的用户名.github.io/你的仓库名/
+```
+
+注意：
+
+- 如果使用 `.github/workflows/pages.yml` 发布，Pages 根目录就是 Hugo 生成的 `public/` 内容，访问地址不需要再加 `/public/`。
+- 如果你坚持访问 `/public/`，那是另一种发布方式：把已经构建好的 `public/` 目录作为仓库内容发布，不建议和官方 Pages artifact workflow 混用。
+- GitHub Pages 部署偶尔会出现 `Deployment failed, try again later.`，通常是 GitHub Pages 临时服务问题；workflow 已加 `concurrency` 避免多个部署互相抢占，遇到这种临时错误可以重新运行失败 job。
 
 ## 上线前检查清单
 
