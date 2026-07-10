@@ -10,7 +10,7 @@
         <li class="comment even thread-even depth-1">
           <div class="comment_body contents">
             {{ $avatar := .avatar | default $.Site.Params.avatar }}
-            <div class="profile"><a target="_blank" rel="nofollow" href=""><img src="{{ $avatar | replaceRE "^/" "" | relURL }}" alt="{{ .author }}" class="avatar avatar-50 photo" height="50" width="50" loading="lazy"></a></div>
+            <div class="profile"><a target="_blank" rel="nofollow" href=""><img src="{{ $avatar | replaceRE "^/" "" | relURL }}" alt="{{ .author }}" class="avatar avatar-50 photo" height="50" width="50" loading="lazy" decoding="async" data-image-retry data-image-fallback="{{ "images/missing-image.svg" | relURL }}"></a></div>
             <section class="commeta">
               <div class="left"><h4 class="author"><a target="_blank" rel="nofollow" href="">{{ .author }}</a></h4></div>
               <div class="right"><div class="info"><time>{{ .date }}</time></div></div>

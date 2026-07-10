@@ -1,7 +1,7 @@
 <header class="site-header" role="banner">
   <div class="site-top">
     <div class="site-branding">
-      <div class="site-title"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.logo | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Title }}"></a></div>
+      <div class="site-title"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.logo | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Title }}" loading="eager" decoding="async" fetchpriority="high" data-image-retry data-image-fallback="{{ "images/missing-image.svg" | relURL }}"></a></div>
     </div>
     <div class="searchbox"><button class="js-toggle-search iconsearch search-toggle iconfont" type="button" aria-label="搜索" data-toggle-search>&#xe6a2;</button></div>
     <div class="lower">
@@ -31,7 +31,7 @@
 <div class="headertop">
 <div id="centerbg">
   <div class="focusinfo">
-    <div class="header-tou"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.avatar | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Params.author }}"></a></div>
+    <div class="header-tou"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.avatar | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Params.author }}" loading="eager" decoding="async" fetchpriority="high" data-image-retry data-image-fallback="{{ "images/missing-image.svg" | relURL }}"></a></div>
     <div class="header-info"><p>{{ .Site.Params.signature }}</p></div>
     <div class="top-social">
       {{ $icons := dict "email" "&#xe7ab;" "qq" "&#xe621;" "weibo" "&#xe623;" "bili" "&#xe633;" "github" "Git" }}

@@ -11,6 +11,7 @@
   setupSiteScrollbar();
   setupPageTransition();
   setupHeaderScroll();
+  setupImageRecovery();
 
   document.querySelectorAll('[data-toggle-search]').forEach((button) => {
     button.addEventListener('click', async () => {
@@ -139,6 +140,40 @@
     window.addEventListener('resize', requestUpdate);
     window.addEventListener('pageshow', requestUpdate);
     update();
+  }
+
+  function setupImageRecovery() {
+    const retryImage = (img) => {
+      if (!img || img.tagName !== 'IMG' || !img.hasAttribute('data-image-retry')) return;
+      const retryCount = Number(img.dataset.imageRetryCount || 0);
+      if (retryCount >= 2) return;
+
+      const original = img.dataset.imageOriginal || img.currentSrc || img.src;
+      img.dataset.imageOriginal = original;
+      img.dataset.imageRetryCount = String(retryCount + 1);
+
+      if (retryCount === 0) {
+        const retryURL = new URL(original, window.location.href);
+        retryURL.searchParams.set('image-retry', '1');
+        img.src = retryURL.href;
+        return;
+      }
+
+      const fallback = img.dataset.imageFallback || '/images/missing-image.svg';
+      if (fallback) img.src = fallback;
+    };
+
+    const scanBrokenImages = () => {
+      document.querySelectorAll('img[data-image-retry]').forEach((img) => {
+        if (img.complete && img.naturalWidth === 0) retryImage(img);
+      });
+    };
+
+    document.addEventListener('error', (event) => retryImage(event.target), true);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scanBrokenImages, { once: true });
+    else scanBrokenImages();
+    window.addEventListener('load', scanBrokenImages, { once: true });
+    window.setTimeout(scanBrokenImages, 1200);
   }
 
   function setupSiteScrollbar() {

@@ -1,5 +1,5 @@
 <div id="mo-nav" class="mobile-panel" aria-hidden="true">
-  <div class="mo_header_img"><img src="{{ .Site.Params.avatar | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Title }}"></div>
+  <div class="mo_header_img"><img src="{{ .Site.Params.avatar | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Title }}" loading="eager" decoding="async" data-image-retry data-image-fallback="{{ "images/missing-image.svg" | relURL }}"></div>
   <div class="mo_header_title"><a class="author_local"><i class="iconfont">&#xe622;</i> {{ .Site.Params.location }}</a><a>{{ .Site.Title }}</a></div>
   <div class="mo_header_info"><a>{{ .Site.Params.signature }}</a></div>
   <div class="search-box"><input class="text-input" type="search" placeholder="搜索..."></div>
@@ -12,5 +12,5 @@
 
 <div class="openNav">
   <button class="iconflat nav-toggle" type="button" aria-label="打开菜单" data-toggle-menu><span class="icon"></span></button>
-  <div class="site-branding"><div class="site-title"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.logo | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Title }}"></a></div></div>
+  <div class="site-branding"><div class="site-title"><a href="{{ .Site.Home.RelPermalink }}"><img src="{{ .Site.Params.logo | replaceRE "^/" "" | relURL }}" alt="{{ .Site.Title }}" loading="eager" decoding="async" fetchpriority="high" data-image-retry data-image-fallback="{{ "images/missing-image.svg" | relURL }}"></a></div></div>
 </div>
