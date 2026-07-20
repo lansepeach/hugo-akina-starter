@@ -234,7 +234,7 @@ export WORDPRESS_URL="https://你的WordPress域名"
 python3 scripts/manage_wordpress_sync.py
 ```
 
-菜单可以分两步操作：先选择同步、本地化和构建，再选择提交并推送；也可以一次完成。人工提交会预览并确认全部项目变更，cron 自动推送只暂存同步相关目录。
+菜单可以分两步操作：先选择同步、本地化和构建，再选择提交并推送；也可以一次完成。人工提交会预览并确认全部项目变更，cron 自动推送只暂存同步相关目录。自动任务发现同步目录外的暂存、未暂存或未跟踪文件时会在构建前停止；指定推送分支与当前检出分支不一致时也会拒绝推送。
 
 非交互示例：
 
@@ -256,7 +256,7 @@ python3 scripts/manage_wordpress_sync.py install-cron --minutes 30
 python3 scripts/manage_wordpress_sync.py install-cron --minutes 30 --auto-push --remote origin --branch main
 ```
 
-日志写入 `logs/wordpress-sync.log`。Linux 上状态文件锁会阻止多个同步任务并发执行。
+日志写入 `logs/wordpress-sync.log`。Linux 上状态文件锁会阻止多个同步任务并发执行。cron 会使用安装时解析到的 Hugo 绝对路径。
 
 ## 清理已下架文章
 
@@ -389,29 +389,33 @@ content/posts/wp-ID.md
 
 ## cron 定时任务
 
-每 10 分钟同步一次并构建：
-
-```cron
-*/10 * * * * cd /path/to/hugo-akina-starter && WORDPRESS_URL="https://你的WordPress域名" /usr/bin/python3 scripts/sync_wordpress_api.py --since-last-run --localize-assets --build >> wordpress-sync.log 2>&1
-```
-
-每小时同步一次，不自动构建：
-
-```cron
-0 * * * * cd /path/to/hugo-akina-starter && WORDPRESS_URL="https://你的WordPress域名" /usr/bin/python3 scripts/sync_wordpress_api.py --since-last-run >> wordpress-sync.log 2>&1
-```
-
-编辑 crontab：
+推荐通过管理脚本安装，避免遗漏进程锁、日志路径和 Hugo 可执行文件：
 
 ```bash
-crontab -e
+export WORDPRESS_URL="https://你的WordPress域名"
+python3 scripts/manage_wordpress_sync.py install-cron --minutes 10
 ```
 
-查看日志：
+自动提交并推送：
 
 ```bash
-tail -f wordpress-sync.log
+python3 scripts/manage_wordpress_sync.py install-cron --minutes 10 --auto-push --remote origin --branch main
 ```
+
+查看任务和日志：
+
+```bash
+crontab -l
+tail -f logs/wordpress-sync.log
+```
+
+删除任务：
+
+```bash
+python3 scripts/manage_wordpress_sync.py remove-cron
+```
+
+管理脚本安装的 cron 只保存 `WORDPRESS_URL`。需要用户名或应用程序密码同步非公开内容时，应使用权限为 `0600` 的环境文件和 systemd 服务加载凭据，不要把密码直接写入 crontab。
 
 ## systemd 定时任务
 

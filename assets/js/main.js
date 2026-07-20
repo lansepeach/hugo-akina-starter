@@ -5,6 +5,9 @@
   const mobilePanel = document.getElementById('mo-nav');
   const pageWrapper = document.getElementById('page');
   let searchIndex = null;
+  let searchIndexPromise = null;
+  let searchReturnFocus = null;
+  let mobileMenuReturnFocus = null;
   let mobileMenuScrollY = 0;
 
   setupFontGate();
@@ -14,16 +17,16 @@
   setupImageRecovery();
 
   document.querySelectorAll('[data-toggle-search]').forEach((button) => {
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', () => {
       if (searchOverlay && searchOverlay.classList.contains('open')) closeSearch();
-      else await openSearch();
+      else openSearch();
     });
   });
 
   document.querySelectorAll('#mo-nav .text-input').forEach((input) => {
     const openFromMobile = async () => {
       await openSearch(input.value);
-      setMobileMenuOpen(false);
+      setMobileMenuOpen(false, false);
     };
     input.addEventListener('focus', openFromMobile);
     input.addEventListener('click', openFromMobile);
@@ -34,14 +37,18 @@
     button.addEventListener('click', () => {
       if (!mobilePanel) return;
       const isOpen = pageWrapper ? !pageWrapper.classList.contains('open') : !mobilePanel.classList.contains('open');
+      if (isOpen) mobileMenuReturnFocus = button;
       setMobileMenuOpen(isOpen);
     });
   });
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      closeSearch();
-      setMobileMenuOpen(false);
+      if (searchOverlay && searchOverlay.classList.contains('open')) closeSearch();
+      else setMobileMenuOpen(false);
+    } else if (event.key === 'Tab') {
+      if (searchOverlay && searchOverlay.classList.contains('open')) trapFocus(searchOverlay, event);
+      else if (mobilePanel && mobilePanel.classList.contains('open')) trapFocus(mobilePanel, event);
     }
   });
 
@@ -59,7 +66,7 @@
     });
   }
 
-  function setMobileMenuOpen(open) {
+  function setMobileMenuOpen(open, restoreFocus = true) {
     if (!mobilePanel) return;
     if (open) {
       mobileMenuScrollY = window.scrollY || document.documentElement.scrollTop || 0;
@@ -68,6 +75,11 @@
         pageWrapper.classList.add('open');
       }
       mobilePanel.classList.add('open');
+      mobilePanel.removeAttribute('inert');
+      window.requestAnimationFrame(() => {
+        const firstLink = mobilePanel.querySelector('a[href]');
+        if (firstLink) firstLink.focus();
+      });
     } else {
       const shouldRestore = pageWrapper && pageWrapper.classList.contains('open');
       if (pageWrapper) {
@@ -75,10 +87,16 @@
         pageWrapper.style.removeProperty('--mobile-menu-scroll-top');
       }
       mobilePanel.classList.remove('open');
+      mobilePanel.setAttribute('inert', '');
       if (shouldRestore) window.scrollTo(0, mobileMenuScrollY);
+      if (shouldRestore && restoreFocus && mobileMenuReturnFocus) mobileMenuReturnFocus.focus();
     }
     mobilePanel.setAttribute('aria-hidden', open ? 'false' : 'true');
-    document.querySelectorAll('[data-toggle-menu]').forEach((button) => button.classList.toggle('open', open));
+    document.querySelectorAll('[data-toggle-menu]').forEach((button) => {
+      button.classList.toggle('open', open);
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      button.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+    });
   }
 
   function setupFontGate() {
@@ -306,29 +324,62 @@
 
   async function ensureSearchIndex() {
     if (searchIndex) return searchIndex;
-    const response = await fetch(document.body.dataset.searchIndex || '/index.json');
-    searchIndex = await response.json();
-    return searchIndex;
+    if (!searchIndexPromise) {
+      searchIndexPromise = fetch(document.body.dataset.searchIndex || '/index.json').then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }).then((data) => {
+        searchIndex = data;
+        return data;
+      }).catch((error) => {
+        searchIndexPromise = null;
+        throw error;
+      });
+    }
+    return searchIndexPromise;
   }
 
   async function openSearch(initialValue) {
     if (!searchOverlay || !searchInput) return;
+    const active = document.activeElement;
+    searchReturnFocus = active && active.matches && active.matches('[data-toggle-search]') ? active : null;
     searchOverlay.classList.add('open');
     searchOverlay.setAttribute('aria-hidden', 'false');
     document.documentElement.classList.add('search-open');
     document.body.classList.add('search-open');
-    await ensureSearchIndex();
     if (typeof initialValue === 'string' && initialValue.trim()) searchInput.value = initialValue;
     searchInput.focus();
-    renderSearch();
+    if (searchResults) searchResults.innerHTML = '<p class="search-hint">正在加载搜索索引...</p>';
+    try {
+      await ensureSearchIndex();
+      renderSearch();
+    } catch (error) {
+      if (searchResults) searchResults.innerHTML = '<p class="no-comments">搜索索引加载失败，请稍后重试</p>';
+    }
   }
 
   function closeSearch() {
     if (!searchOverlay) return;
+    const wasOpen = searchOverlay.classList.contains('open');
     searchOverlay.classList.remove('open');
     searchOverlay.setAttribute('aria-hidden', 'true');
     document.documentElement.classList.remove('search-open');
     document.body.classList.remove('search-open');
+    if (wasOpen && searchReturnFocus) searchReturnFocus.focus();
+  }
+
+  function trapFocus(container, event) {
+    const focusable = Array.from(container.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])')).filter((element) => element.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      last.focus();
+      event.preventDefault();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      first.focus();
+      event.preventDefault();
+    }
   }
 
   function renderSearch() {
@@ -426,7 +477,7 @@
   const timeDate = document.getElementById('timeDate');
   const times = document.getElementById('times');
   if (timeDate && times) {
-    const start = new Date('2016-10-04T03:39:00+08:00');
+    const start = new Date(`${timeDate.dataset.startDate || '2024-01-01'}T00:00:00+08:00`);
     const tick = () => {
       const diff = Math.max(0, Date.now() - start.getTime());
       const days = Math.floor(diff / 86400000);
@@ -437,7 +488,9 @@
       times.textContent = `${pad(hours)}小时${pad(minutes)}分${pad(seconds)}秒`;
     };
     tick();
-    setInterval(tick, 250);
+    window.setInterval(() => {
+      if (!document.hidden) tick();
+    }, 1000);
   }
 
   function pad(value) {

@@ -12,38 +12,33 @@
         li {margin-top: 8px;}
         .page {padding: 4px; border-top: 1px #EEEEEE solid}
         .author {background-color:#EEEEFF; padding: 6px; border-top: 1px #ddddee solid}
-        #nav, #content, #footer {padding: 8px; border: 1px solid #EEEEEE; clear: both; width: 95%; margin: auto; margin-top: 10px;}
+        .sitemap-box {padding: 8px; border: 1px solid #EEEEEE; clear: both; width: 95%; margin: 10px auto 0; box-sizing: border-box;}
+        .sitemap-footer {text-align: center; font-size: 11px;}
     </style>
 </head>
-<body data-rsssl=1 vlink="#333333" link="#333333">
-<h2 style="text-align: center; margin-top: 20px">{{ .Site.Title }}'s SiteMap </h2>
-<center></center>
-<div id="nav"><a href="{{ .Site.Home.RelPermalink }}"><strong>{{ .Site.Title }}</strong></a> &raquo; <a href="{{ .RelPermalink }}">站点地图</a></div>
-<div id="content">
+<body>
+<h1 style="text-align: center; margin-top: 20px">{{ .Site.Title }}'s SiteMap</h1>
+<nav class="sitemap-box" aria-label="面包屑"><a href="{{ .Site.Home.RelPermalink }}"><strong>{{ .Site.Title }}</strong></a> &raquo; <a href="{{ .RelPermalink }}">站点地图</a></nav>
+<section class="sitemap-box">
     <h3>最新文章</h3>
     <ul>
         {{ range where .Site.RegularPages "Section" "posts" }}
-            <li><a href="{{ .RelPermalink }}" title="{{ .Title }}" target="_blank">{{ .Title }}</a></li>
+            <li><a href="{{ .RelPermalink }}" title="{{ .Title }}">{{ .Title }}</a></li>
         {{ end }}
     </ul>
-</div>
-<div id="content">
-    <li class="categories">分类目录<ul>
+</section>
+<section class="sitemap-box">
+    <h3>分类目录</h3>
+    <ul>
         {{ range .Site.Taxonomies.categories }}
             <li class="cat-item"><a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a></li>
         {{ end }}
-    </ul></li>
-</div>
-<div id="content">
-    <li class="categories">单页面</li>
-    <div class="menu"><ul>{{ range .Site.Menus.main }}<li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>{{ if .HasChildren }}{{ range .Children }}<li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>{{ end }}{{ end }}{{ end }}</ul></div>
-</div>
-<div id="footer">查看博客首页: <strong><a href="{{ .Site.Home.RelPermalink }}">{{ .Site.Title }}</a></strong></div><br>
-<center>
-    <div style="text-algin: center; font-size: 11px">Latest Update: {{ now.Format "2006-01-02 15:04:05" }}<br><br></div>
-</center>
-<center>
-    <div style="text-algin: center; font-size: 11px">&copy; {{ now.Format "2006" }} <a href="{{ .Site.Home.RelPermalink }}" style="cursor:help">{{ .Site.Title }}</a> 版权所有.<br><br></div>
-</center>
+    </ul>
+</section>
+<section class="sitemap-box">
+    <h3>单页面</h3>
+    <ul>{{ range .Site.Menus.main }}<li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>{{ if .HasChildren }}{{ range .Children }}<li><a href="{{ .URL | relURL }}">{{ .Name }}</a></li>{{ end }}{{ end }}{{ end }}</ul>
+</section>
+<footer class="sitemap-box sitemap-footer">查看博客首页: <strong><a href="{{ .Site.Home.RelPermalink }}">{{ .Site.Title }}</a></strong><br><br>Latest Update: {{ .Site.Lastmod.Format "2006-01-02 15:04:05" }}<br><br>&copy; {{ now.Format "2006" }} {{ .Site.Title }} 版权所有.</footer>
 </body>
 </html>

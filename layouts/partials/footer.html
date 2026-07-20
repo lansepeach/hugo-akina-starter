@@ -10,7 +10,7 @@
       <a href="{{ "ditu/" | relURL }}" target="_blank"> | 网站地图 </a> |
     </p>
     <div class="footertext">
-      <p><span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span></p>
+      <p><span id="timeDate" data-start-date="{{ .Site.Params.startDate }}">载入天数...</span><span id="times">载入时分秒...</span></p>
       {{ with .Site.Params.footerSponsorImage }}<p><a href="{{ $.Site.Params.footerSponsorURL | default "#" }}" target="_blank" rel="nofollow"><img border="0" title="{{ $.Site.Params.footerSponsorTitle | default "Sponsor" }}" alt="{{ $.Site.Params.footerSponsorTitle | default "Sponsor" }}" src="{{ . | replaceRE "^/" "" | relURL }}"></a></p>{{ end }}
     </div>
   </div>

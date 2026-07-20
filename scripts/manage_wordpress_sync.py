@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 from datetime import datetime
@@ -40,14 +41,25 @@ def current_branch() -> str:
     return run(["git", "branch", "--show-current"], capture=True).stdout.strip()
 
 
+def unrelated_worktree_changes() -> list[str]:
+    changed = run(["git", "diff", "--name-only"], capture=True).stdout.splitlines()
+    changed.extend(run(["git", "diff", "--cached", "--name-only"], capture=True).stdout.splitlines())
+    changed.extend(run(["git", "ls-files", "--others", "--exclude-standard"], capture=True).stdout.splitlines())
+    return sorted({path for path in changed if not any(path == allowed or path.startswith(allowed + "/") for allowed in SYNC_PATHS)})
+
+
 def default_commit_message() -> str:
     return "同步 WordPress 内容 " + datetime.now().astimezone().strftime("%Y-%m-%d %H:%M")
 
 
 def publish(remote: str, branch: str, message: str | None, assume_yes: bool, include_all: bool = False) -> int:
-    branch = branch or current_branch()
-    if not branch:
+    checked_out = current_branch()
+    branch = branch or checked_out
+    if not checked_out:
         print("error: 当前不在可推送的 Git 分支上", file=sys.stderr)
+        return 1
+    if branch != checked_out:
+        print(f"error: 当前分支是 {checked_out}，拒绝把提交错误推送到 {branch}", file=sys.stderr)
         return 1
     already_staged = run(["git", "diff", "--cached", "--name-only"], capture=True).stdout.strip()
     if already_staged:
@@ -99,8 +111,12 @@ def install_cron(minutes: int, auto_push: bool, remote: str, branch: str) -> int
         raise RuntimeError("安装 cron 前必须设置 WORDPRESS_URL")
     log_dir = ROOT / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
+    hugo = shutil.which("hugo")
+    if not hugo:
+        raise RuntimeError("找不到 Hugo 可执行文件")
     command = [
         f"WORDPRESS_URL={shlex.quote(source_url)}",
+        f"HUGO_COMMAND={shlex.quote(hugo + ' --minify --cleanDestinationDir')}",
         shlex.quote(sys.executable),
         shlex.quote(str(Path(__file__).resolve())),
         "auto", "--yes", "--remote", shlex.quote(remote),
@@ -187,6 +203,11 @@ def main() -> int:
         if args.command == "prune-preview":
             return synchronize(full=True, prune=True, dry_run=True)
         if args.command == "auto":
+            unrelated = unrelated_worktree_changes()
+            if unrelated:
+                print("error: 自动同步已中止，存在同步目录外的未提交文件：", file=sys.stderr)
+                print("\n".join(unrelated), file=sys.stderr)
+                return 1
             result = synchronize()
             return result if result or not args.auto_push else publish(args.remote, args.branch, args.message, True, False)
         if args.command == "install-cron":

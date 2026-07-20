@@ -8,6 +8,7 @@ blocks, tables, images, and legacy markup render as close as possible.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import html
 import json
@@ -20,7 +21,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
-XML = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / "wordpress-export.xml"
+XML = ROOT / "wordpress-export.xml"
 NS = {
     "content": "http://purl.org/rss/1.0/modules/content/",
     "dc": "http://purl.org/dc/elements/1.1/",
@@ -31,7 +32,7 @@ TZ = timezone(timedelta(hours=8))
 
 
 def text(node: ET.Element | None, default: str = "") -> str:
-    return html.unescape(node.text or default) if node is not None else default
+    return (node.text or default) if node is not None else default
 
 
 def child(node: ET.Element, path: str) -> str:
@@ -86,14 +87,20 @@ def taxonomies(item: ET.Element, domain: str) -> list[str]:
 
 
 def clean_content(value: str) -> str:
-    value = html.unescape(value or "")
+    value = value or ""
     value = re.sub(r"<!--\s*/?wp:[^>]*-->", "", value)
     value = value.replace("\r\n", "\n")
     return value.strip() + "\n"
 
 
+def clean_comment(value: str) -> str:
+    value = re.sub(r"<br\s*/?>|</p\s*>", "\n", value or "", flags=re.IGNORECASE)
+    value = re.sub(r"<[^>]+>", "", value)
+    return html.unescape(value).strip()
+
+
 def avatar_for(email: str) -> str:
-    digest = hashlib.sha256((email or "").strip().lower().encode()).hexdigest()
+    digest = hashlib.md5((email or "").strip().lower().encode(), usedforsecurity=False).hexdigest()
     return f"https://cn.gravatar.com/avatar/{digest}?s=50&r=g"
 
 
@@ -105,11 +112,10 @@ def collect_comments(item: ET.Element) -> list[dict[str, str]]:
         ctype = child(comment, "wp:comment_type")
         if ctype not in {"", "comment"}:
             continue
-        content = clean_content(child(comment, "wp:comment_content"))
+        content = clean_comment(child(comment, "wp:comment_content"))
         comments.append(
             {
                 "author": child(comment, "wp:comment_author") or "匿名",
-                "email": child(comment, "wp:comment_author_email"),
                 "url": child(comment, "wp:comment_author_url"),
                 "date": child(comment, "wp:comment_date") or child(comment, "wp:comment_date_gmt"),
                 "content": content,
@@ -139,24 +145,36 @@ def write_file(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Import a WordPress WXR export into Hugo.")
+    parser.add_argument("xml", nargs="?", type=Path, default=XML)
+    parser.add_argument("--replace-existing", action="store_true", help="replace existing content/posts and content/page after a successful import")
+    return parser.parse_args()
+
+
 def main() -> int:
-    if not XML.exists():
-        print(f"missing export: {XML}", file=sys.stderr)
+    args = parse_args()
+    xml_path = args.xml.resolve()
+    if not xml_path.exists():
+        print(f"missing export: {xml_path}", file=sys.stderr)
         return 1
 
-    tree = ET.parse(XML)
+    tree = ET.parse(xml_path)
     channel = tree.getroot().find("channel")
     if channel is None:
         print("invalid WXR export", file=sys.stderr)
         return 1
 
-    posts_dir = ROOT / "content" / "posts"
-    pages_dir = ROOT / "content" / "page"
-    data_dir = ROOT / "data"
-    if posts_dir.exists():
-        shutil.rmtree(posts_dir)
-    if pages_dir.exists():
-        shutil.rmtree(pages_dir)
+    target_posts = ROOT / "content" / "posts"
+    target_pages = ROOT / "content" / "page"
+    if not args.replace_existing and any(path.exists() and any(path.iterdir()) for path in (target_posts, target_pages)):
+        print("refusing to replace existing content; rerun with --replace-existing", file=sys.stderr)
+        return 1
+    staging = ROOT / ".wordpress-import-staging"
+    shutil.rmtree(staging, ignore_errors=True)
+    posts_dir = staging / "posts"
+    pages_dir = staging / "page"
+    data_dir = staging / "data"
     posts_dir.mkdir(parents=True)
     pages_dir.mkdir(parents=True)
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -245,11 +263,18 @@ def main() -> int:
     if not sitemap_path.exists():
         write_file(
             sitemap_path,
-            frontmatter({"title": "网站地图", "date": "1970-01-01T00:00:00+08:00", "draft": False, "type": "page", "url": "/ditu/"})
-            + "<ul>\n<li><a href=\"/archives/\">文章归档</a></li>\n<li><a href=\"/index.xml\">RSS</a></li>\n<li><a href=\"/sitemap.xml\">Sitemap XML</a></li>\n</ul>\n",
+            frontmatter({"title": "网站地图", "date": "1970-01-01T00:00:00+08:00", "draft": False, "type": "page", "url": "/ditu/", "layout": "ditu"}),
         )
 
     write_file(data_dir / "comments.json", json.dumps(comments_data, ensure_ascii=False, indent=2))
+    for source, target in ((posts_dir, target_posts), (pages_dir, target_pages)):
+        if target.exists():
+            shutil.rmtree(target)
+        shutil.move(str(source), str(target))
+    target_data = ROOT / "data"
+    target_data.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(data_dir / "comments.json"), str(target_data / "comments.json"))
+    shutil.rmtree(staging, ignore_errors=True)
     print(f"Imported {imported_posts} posts and {imported_pages} pages")
     return 0
 

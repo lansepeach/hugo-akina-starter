@@ -598,7 +598,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--localize-command", default=f"{shlex.quote(sys.executable)} scripts/localize_remote_assets.py --best-effort", help="asset localization command used by --localize-assets")
     parser.add_argument("--build", action="store_true", help="run Hugo after changed posts are written")
     parser.add_argument("--build-always", action="store_true", help="run --localize-assets/--build even when no post changed")
-    parser.add_argument("--hugo-command", default="hugo --minify --cleanDestinationDir", help="Hugo build command used by --build")
+    parser.add_argument("--hugo-command", default=os.environ.get("HUGO_COMMAND", "hugo --minify --cleanDestinationDir"), help="Hugo build command used by --build")
     return parser.parse_args()
 
 
@@ -618,6 +618,8 @@ def main() -> int:
         state["site_url"] = site_url
         if args.prune and not args.all:
             raise RuntimeError("--prune requires --all")
+        if args.prune and args.status != "publish":
+            raise RuntimeError("--prune only supports --status publish")
         auth = auth_header(args.username, args.password)
         posts = fetch_posts(site_url, auth, args, state)
         if not args.quiet:

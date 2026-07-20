@@ -1435,3 +1435,8 @@ html.page-transitioning .page-transition-mask {
     margin-bottom: 50% !important;
   }
 }
+
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--akina-main) !important;
+  outline-offset: 3px;
+}

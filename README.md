@@ -521,7 +521,7 @@ scripts/localize_remote_assets.py
 
 1. 从 WordPress 后台导出 WXR XML。
 2. 把 XML 临时放到项目根目录。
-3. 根据脚本参数或代码注释运行导入脚本。
+3. 运行 `python3 scripts/import_wordpress.py wordpress-export.xml --replace-existing`。不加 `--replace-existing` 时，脚本会拒绝覆盖已有文章和页面。
 4. 检查生成的 `content/posts/`、`content/page/` 和 `data/comments.json`。
 5. 使用 `scripts/localize_remote_assets.py` 本地化会自动加载的远程资源。
 6. 构建并检查页面。
@@ -657,7 +657,7 @@ export WORDPRESS_URL="https://你的WordPress域名"
 python3 scripts/manage_wordpress_sync.py
 ```
 
-菜单支持增量同步、本地化、Hugo 构建、提交推送、全量同步、下架预览和 cron 安装。人工选择提交时会显示并确认全部项目变更；cron 自动推送只提交文章、资源和 `public/`，不会自动提交开发中的模板或脚本。
+菜单支持增量同步、本地化、Hugo 构建、提交推送、全量同步、下架预览和 cron 安装。人工选择提交时会显示并确认全部项目变更；cron 自动推送只提交文章、资源和 `public/`。如果同步目录外存在未提交文件，自动任务会在构建前停止，避免开发中的模板间接进入生成结果。推送目标分支必须与当前检出分支一致。
 
 常用非交互命令：
 
@@ -685,7 +685,7 @@ python3 scripts/manage_wordpress_sync.py install-cron --minutes 30 --auto-push -
 注意事项：
 
 - 脚本目前同步 WordPress 文章，不同步 WordPress 页面。
-- 增量接口无法发现文章删除或取消发布；可定期执行 `--all --prune --dry-run` 检查，再用 `--all --prune --build` 清理。
+- 增量接口无法发现文章删除或取消发布；可定期执行 `--all --prune --dry-run` 检查，再用 `--all --prune --build` 清理。`--prune` 仅允许 `--status publish`。
 - 同一个 WordPress 文章 ID 会按 `wp_id` 原位更新；没有已有文件时才创建 `content/posts/wp-ID.md`。
 - 如果你手动改了同步管理的 `wp_id` 文件，下次 WordPress 文章更新后会被同步脚本覆盖。
 - `comment_count` 会通过 `/wp-json/wp/v2/comments` 查询；请求失败会停止同步，使用 `--skip-comment-count` 时已有文件保留原评论数。

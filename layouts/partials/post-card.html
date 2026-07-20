@@ -13,8 +13,7 @@
   </div>
   <time class="p-time" datetime="{{ .Date.Format "2006-01-02" }}"><i class="iconfont">&#xe636;</i> {{ .Date.Format "2006-01-02" }}</time>
   <h1 class="entry-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h1>
-  {{ $excerpt := trim (.Params.excerpt | default "" | plainify | htmlUnescape) " \n\r\t" }}
-  <p>{{ if $excerpt }}{{ $excerpt | truncate 180 }}{{ else }}{{ .Summary | plainify | htmlUnescape | truncate 180 }}{{ end }}</p>
+  <p>{{ .Plain | htmlUnescape | truncate 180 }}</p>
   <footer class="entry-footer">
     <div class="info-meta">
       <span class="meta-item"><em>{{ .Params.comment_count | default 0 }} 条评论</em></span>
