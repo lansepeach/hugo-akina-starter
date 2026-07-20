@@ -582,11 +582,13 @@ WORDPRESS_APP_PASSWORD="xxxx xxxx xxxx xxxx" \
 python3 scripts/sync_wordpress_api.py --since-last-run
 ```
 
-脚本会生成类似这样的文件：
+新文章会生成类似这样的文件：
 
 ```text
 content/posts/wp-1269.md
 ```
+
+如果之前用 WXR 脚本导入过文章，同一个 `wp_id` 的 `1269-文章名.md` 会被原位更新，不会重复生成 `wp-1269.md`。
 
 生成的 front matter 会包含：
 
@@ -621,6 +623,8 @@ URL 生成模式由 `--url-mode` 控制：
 WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --since-last-run --localize-assets
 ```
 
+本地化路径会读取 `hugo.toml` 的 `baseURL`，因此 WordPress 原始 HTML 图片也能兼容 GitHub Pages 子路径。请先确认 `baseURL` 已设置为实际部署地址。
+
 如果要同步后自动构建 Hugo：
 
 ```bash
@@ -635,18 +639,57 @@ WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api
 
 这个文件记录上次同步到的 WordPress 修改时间，已加入 `.gitignore`，不要提交到公开仓库。
 
-cron 定时任务示例，每 10 分钟同步一次：
+单篇 `--post-id` 调试不会推进全局增量游标。资源本地化或构建失败时，状态文件会记录待重试动作，下次运行自动重试。
 
-```cron
-*/10 * * * * cd /path/to/hugo-akina-starter && WORDPRESS_URL="https://你的WordPress域名" /usr/bin/python3 scripts/sync_wordpress_api.py --since-last-run --localize-assets --build >> wordpress-sync.log 2>&1
+首次增量同步且状态文件不存在时，已有 `wp_id` 文件只登记状态，不会批量重写；只创建源站新增而本地缺失的文章。需要重新比较全部旧文章时使用全量同步。
+
+### 交互式同步管理
+
+先设置源站：
+
+```bash
+export WORDPRESS_URL="https://你的WordPress域名"
+```
+
+运行菜单：
+
+```bash
+python3 scripts/manage_wordpress_sync.py
+```
+
+菜单支持增量同步、本地化、Hugo 构建、提交推送、全量同步、下架预览和 cron 安装。人工选择提交时会显示并确认全部项目变更；cron 自动推送只提交文章、资源和 `public/`，不会自动提交开发中的模板或脚本。
+
+常用非交互命令：
+
+```bash
+python3 scripts/manage_wordpress_sync.py sync
+python3 scripts/manage_wordpress_sync.py sync-publish
+python3 scripts/manage_wordpress_sync.py publish --all-changes --yes
+python3 scripts/manage_wordpress_sync.py prune-preview
+```
+
+资源本地化在同步流程中使用 best-effort 模式：失效外链会警告并保留原 URL，但不会阻止 Hugo 构建。GitHub Pages 子路径仍根据 `baseURL` 自动处理。
+
+安装 cron 前必须保留 `WORDPRESS_URL` 环境变量。每 30 分钟同步构建：
+
+```bash
+python3 scripts/manage_wordpress_sync.py install-cron --minutes 30
+```
+
+同步构建后自动提交并推送：
+
+```bash
+python3 scripts/manage_wordpress_sync.py install-cron --minutes 30 --auto-push --remote origin --branch main
 ```
 
 注意事项：
 
-- 脚本目前同步 WordPress 文章，不同步页面删除动作。
-- 同一个 WordPress 文章 ID 会固定写入同一个 `content/posts/wp-ID.md` 文件。
-- 如果你手动改了 `wp-ID.md`，下次 WordPress 文章更新后会被同步脚本覆盖。
-- `comment_count` 会通过 `/wp-json/wp/v2/comments` 查询；如果评论接口不可用，可以加 `--skip-comment-count`。
+- 脚本目前同步 WordPress 文章，不同步 WordPress 页面。
+- 增量接口无法发现文章删除或取消发布；可定期执行 `--all --prune --dry-run` 检查，再用 `--all --prune --build` 清理。
+- 同一个 WordPress 文章 ID 会按 `wp_id` 原位更新；没有已有文件时才创建 `content/posts/wp-ID.md`。
+- 如果你手动改了同步管理的 `wp_id` 文件，下次 WordPress 文章更新后会被同步脚本覆盖。
+- `comment_count` 会通过 `/wp-json/wp/v2/comments` 查询；请求失败会停止同步，使用 `--skip-comment-count` 时已有文件保留原评论数。
+- 使用 `--status draft`、`private` 等非发布状态时，生成文件会保持 `draft = true`。
 - WordPress 正文 HTML 会尽量原样保留，不强制转换成 Markdown。
 
 ## 部署建议

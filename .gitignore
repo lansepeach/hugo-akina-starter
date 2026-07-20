@@ -16,6 +16,8 @@ Thumbs.db
 *.tmp
 *.bak
 .wordpress-sync-state.json
+.wordpress-sync-state.json.lock
+/logs/
 __pycache__/
 *.pyc
 

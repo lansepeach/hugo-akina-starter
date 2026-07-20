@@ -1,1 +1,5 @@
-<img src="{{ .Destination | replaceRE "^/" "" | relURL | safeURL }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }} loading="lazy">
+{{- $imageURL := .Destination -}}
+{{- if not (or (hasPrefix .Destination "http://") (hasPrefix .Destination "https://") (hasPrefix .Destination "//") (hasPrefix .Destination .Page.Site.Home.RelPermalink)) -}}
+  {{- $imageURL = .Destination | replaceRE "^/" "" | relURL -}}
+{{- end -}}
+<img src="{{ $imageURL | safeURL }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }} loading="lazy">

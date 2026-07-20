@@ -46,9 +46,13 @@
 </div>
 </div>
 {{ else if and (eq .Kind "page") (eq .Type "posts") }}
-<div class="headertop">
+  <div class="headertop">
   {{ $singleHero := .Params.featured_image | default .Site.Params.heroImage }}
-  <div id="centerbg_single" style="background-image: url('{{ $singleHero | replaceRE "^/" "" | relURL }}')">
+  {{ $singleHeroURL := $singleHero }}
+  {{ if not (or (hasPrefix $singleHero "http://") (hasPrefix $singleHero "https://") (hasPrefix $singleHero "//") (hasPrefix $singleHero .Site.Home.RelPermalink)) }}
+    {{ $singleHeroURL = $singleHero | replaceRE "^/" "" | relURL }}
+  {{ end }}
+  <div id="centerbg_single" style="background-image: url('{{ $singleHeroURL }}')">
     <div class="focusinfo">
       <div class="header-info_single">
         <h1 class="entry-title">{{ .Title }}</h1>

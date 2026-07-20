@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import hashlib
+import os
 import re
 import sys
 import urllib.error
@@ -15,6 +17,18 @@ STATIC = ROOT / "static"
 TARGETS = [ROOT / "content", ROOT / "assets" / "css"]
 
 URL_RE = re.compile(r"https?://[^\s\"'<>)]*\.(?:png|jpe?g|gif|webp|svg|woff2?|ttf|otf|css|js)(?:\?[^\s\"'<>)]*)?", re.I)
+BASE_URL_RE = re.compile(r"(?m)^\s*baseURL\s*=\s*[\"']([^\"']+)[\"']")
+
+
+def site_base_path() -> str:
+    config = ROOT / "hugo.toml"
+    if not config.exists():
+        return ""
+    match = BASE_URL_RE.search(config.read_text(encoding="utf-8"))
+    if not match:
+        return ""
+    path = urllib.parse.urlparse(match.group(1)).path.strip("/")
+    return f"/{path}" if path else ""
 
 
 def local_path_for(url: str) -> tuple[Path, str]:
@@ -51,11 +65,16 @@ def download(url: str, dest: Path) -> bool:
     if not data:
         print(f"FAILED {url}: empty response", file=sys.stderr)
         return False
-    dest.write_bytes(data)
+    temporary = dest.with_name(f".{dest.name}.{os.getpid()}.part")
+    try:
+        temporary.write_bytes(data)
+        os.replace(temporary, dest)
+    finally:
+        temporary.unlink(missing_ok=True)
     return True
 
 
-def main() -> int:
+def main(best_effort: bool = False) -> int:
     files: list[Path] = []
     for target in TARGETS:
         files.extend(path for path in target.rglob("*") if path.is_file() and path.suffix in {".md", ".css"})
@@ -66,10 +85,11 @@ def main() -> int:
 
     replacements: dict[str, str] = {}
     failed: list[str] = []
+    base_path = site_base_path()
     for url in sorted(urls):
         dest, public_path = local_path_for(url)
         if download(url, dest):
-            replacements[url] = public_path
+            replacements[url] = base_path + public_path
         else:
             failed.append(url)
 
@@ -78,16 +98,16 @@ def main() -> int:
         updated = text
         for url, replacement in replacements.items():
             updated = updated.replace(url, replacement)
-        for url in failed:
-            updated = updated.replace(url, "/images/missing-image.svg")
         if updated != text:
             path.write_text(updated, encoding="utf-8")
 
     print(f"localized={len(replacements)} failed={len(failed)}")
     for url in failed:
         print(url)
-    return 0 if not failed else 1
+    return 0 if not failed or best_effort else 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    parser = argparse.ArgumentParser(description="Localize remote assets used by Hugo content and CSS.")
+    parser.add_argument("--best-effort", action="store_true", help="report failed downloads but return success")
+    raise SystemExit(main(parser.parse_args().best_effort))

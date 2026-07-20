@@ -12,11 +12,13 @@
 WordPress 发布文章 -> WordPress REST API -> sync_wordpress_api.py -> content/posts/ -> Hugo 构建
 ```
 
-脚本会把 WordPress 文章转换为 Hugo 内容文件，例如：
+脚本会把 WordPress 文章转换为 Hugo 内容文件。新文章默认使用：
 
 ```text
 content/posts/wp-1269.md
 ```
+
+如果 `content/posts/` 已有从 WXR 导入且包含相同 `wp_id` 的文件，例如 `1269-python-oop.md`，同步脚本会原位更新该文件，不会再生成重复的 `wp-1269.md`。
 
 ## 同步内容
 
@@ -129,6 +131,8 @@ content/posts/wp-1269.md
 
 状态文件记录上次同步到的 WordPress 修改时间。它已经加入 `.gitignore`，不要提交到公开仓库。
 
+Linux 上脚本会使用对应状态文件的 `.lock` 文件阻止两个 cron 同步任务同时运行，避免并发写文章、状态和构建目录。
+
 ## 增量同步
 
 首次全量同步后，日常使用增量同步：
@@ -137,7 +141,7 @@ content/posts/wp-1269.md
 WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --since-last-run
 ```
 
-`--since-last-run` 会读取 `.wordpress-sync-state.json`，只同步上次同步后修改过的文章。
+`--since-last-run` 会读取 `.wordpress-sync-state.json`，只同步上次同步后修改过的文章。不同 `--status` 使用独立的修改时间游标。
 
 如果不写 `--all`、`--post-id` 或 `--since-last-run`，脚本默认行为也是增量同步。
 
@@ -159,11 +163,13 @@ WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api
 /wp-json/wp/v2/posts/1269
 ```
 
-并写入：
+如果没有相同 `wp_id` 的已有文件，则写入：
 
 ```text
 content/posts/wp-1269.md
 ```
+
+指定文章同步不会推进全局增量游标，因此在首次全量同步前调试单篇文章不会跳过其他旧文章。
 
 ## 同步后构建 Hugo
 
@@ -195,6 +201,8 @@ WordPress 正文里的图片默认可能仍然指向原 WordPress 域名。
 WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --since-last-run --localize-assets
 ```
 
+本地化后的公开路径会自动包含 `hugo.toml` 中 `baseURL` 的子路径。例如 `baseURL` 以 `/hugo-akina-starter/` 结尾时，正文 HTML 会使用 `/hugo-akina-starter/uploads/...`，避免 GitHub Pages 子路径 404。运行本地化前应先把 `baseURL` 配置为实际部署地址。
+
 同步、资源本地化、构建一起执行：
 
 ```bash
@@ -208,6 +216,63 @@ WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api
 ```bash
 WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --since-last-run --localize-assets --build --build-always
 ```
+
+如果资源本地化或 Hugo 构建失败，状态文件会保留待处理动作。下次运行会先重试这些动作，成功后才清除待处理标记。
+
+资源下载失败时会保留原远程 URL 并返回错误，不会把 CSS、JS、字体或图片地址永久替换成错误的占位图。
+
+同步流程调用本地化脚本时使用 `--best-effort`：失效外链仍会输出警告，但会继续构建 Hugo。若本地化真正异常或 Hugo 构建失败，待处理动作仍会保存并在下次重试。
+
+首次增量同步且没有状态文件时，已有 `wp_id` 文件只登记源站修改时间，不会批量覆盖；源站新增而本地缺失的文章会正常创建。使用 `--all` 可强制重新比较全部文章。
+
+## 交互式管理和 Git 推送
+
+设置源站后运行：
+
+```bash
+export WORDPRESS_URL="https://你的WordPress域名"
+python3 scripts/manage_wordpress_sync.py
+```
+
+菜单可以分两步操作：先选择同步、本地化和构建，再选择提交并推送；也可以一次完成。人工提交会预览并确认全部项目变更，cron 自动推送只暂存同步相关目录。
+
+非交互示例：
+
+```bash
+python3 scripts/manage_wordpress_sync.py sync
+python3 scripts/manage_wordpress_sync.py sync-publish
+python3 scripts/manage_wordpress_sync.py publish --all-changes --yes
+```
+
+安装每 30 分钟运行一次的 cron：
+
+```bash
+python3 scripts/manage_wordpress_sync.py install-cron --minutes 30
+```
+
+自动提交并推送：
+
+```bash
+python3 scripts/manage_wordpress_sync.py install-cron --minutes 30 --auto-push --remote origin --branch main
+```
+
+日志写入 `logs/wordpress-sync.log`。Linux 上状态文件锁会阻止多个同步任务并发执行。
+
+## 清理已下架文章
+
+增量接口无法发现已经删除、转为草稿或不再出现在当前状态筛选中的文章。需要清理时，先 dry run：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --all --prune --dry-run
+```
+
+确认列表后正式执行：
+
+```bash
+WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --all --prune --build
+```
+
+`--prune` 只能和 `--all` 一起使用，只删除 `content/posts/` 中包含 `wp_id` 且未出现在完整 API 结果里的文件。它不会删除普通 Hugo 文章。
 
 ## URL 模式
 
@@ -275,13 +340,13 @@ excerpt = "文章摘要"
 <p>这里是 WordPress 正文 HTML。</p>
 ```
 
-同一个 WordPress 文章 ID 会固定写入同一个文件：
+同一个 WordPress 文章 ID 会固定更新同一个文件。没有现有 `wp_id` 文件时，默认路径是：
 
 ```text
 content/posts/wp-ID.md
 ```
 
-如果 WordPress 文章更新，下次同步会覆盖对应的 `wp-ID.md` 文件。
+如果已有 WXR 导入文件，则继续使用原文件名。WordPress 文章更新后，下次同步会覆盖该 `wp_id` 对应的文件。
 
 ## 命令参数
 
@@ -290,12 +355,13 @@ content/posts/wp-ID.md
 | `--site-url` | WordPress 站点地址，也可以用 `WORDPRESS_URL` 环境变量。 |
 | `--username` | WordPress 用户名，也可以用 `WORDPRESS_USERNAME`。 |
 | `--password` | WordPress 应用程序密码，也可以用 `WORDPRESS_APP_PASSWORD`。 |
-| `--status` | 要同步的文章状态，默认 `publish`。 |
+| `--status` | 要同步的文章状态，默认 `publish`；非 `publish` 内容会写为 Hugo 草稿。 |
 | `--timezone` | WordPress 本地时间的默认时区，默认 `+08:00`。 |
 | `--url-mode` | URL 生成模式，可选 `wp`、`id`、`slug`。 |
 | `--content-dir` | Hugo 文章目录，默认 `content/posts`。 |
 | `--state-file` | 同步状态文件，默认 `.wordpress-sync-state.json`。 |
-| `--skip-comment-count` | 跳过评论数量查询。 |
+| `--skip-comment-count` | 跳过评论数量查询；已有文件会保留原评论数。 |
+| `--prune` | 必须配合 `--all`，清理完整 API 结果中不存在的 `wp_id` 文章。 |
 | `--dry-run` | 只测试，不写文章文件和状态文件。 |
 | `--quiet` | 减少输出。 |
 | `--all` | 同步全部符合条件的文章。 |
@@ -449,6 +515,8 @@ journalctl -u hugo-wordpress-sync.service -f
 - 打开 `/wp-json/wp/v2/comments?post=文章ID&status=approve&per_page=1` 测试。
 - 如果不需要评论数量，加 `--skip-comment-count`。
 
+评论接口请求失败时同步会停止，避免把已有评论数误写成 `0`。增量同步只会刷新本次被 WordPress 标记为已修改文章的评论数；如需定期刷新全部评论数，可周期性运行 `--all`。
+
 ### 图片仍然引用 WordPress 域名
 
 这是正常行为。同步脚本默认保留 WordPress 正文 HTML，不主动改图片地址。
@@ -461,7 +529,7 @@ WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api
 
 ### 手动修改的文章被覆盖
 
-这是预期行为。同一个 WordPress ID 总是写入同一个 `content/posts/wp-ID.md` 文件。
+这是预期行为。同一个 WordPress ID 总是更新同一个文件；如果已有 WXR 导入文件，脚本会按 `wp_id` 找到并原位更新。
 
 如果某篇文章想改为 Hugo 手动维护，可以复制成另一个文件，并避免继续同步原 WordPress ID。
 
