@@ -24,9 +24,10 @@
   });
 
   document.querySelectorAll('#mo-nav .text-input').forEach((input) => {
-    const openFromMobile = async () => {
-      await openSearch(input.value);
+    const openFromMobile = () => {
+      const returnFocus = mobileMenuReturnFocus;
       setMobileMenuOpen(false, false);
+      openSearch(input.value, returnFocus);
     };
     input.addEventListener('focus', openFromMobile);
     input.addEventListener('click', openFromMobile);
@@ -339,10 +340,10 @@
     return searchIndexPromise;
   }
 
-  async function openSearch(initialValue) {
+  async function openSearch(initialValue, returnFocus = null) {
     if (!searchOverlay || !searchInput) return;
     const active = document.activeElement;
-    searchReturnFocus = active && active.matches && active.matches('[data-toggle-search]') ? active : null;
+    searchReturnFocus = returnFocus || (active && active.matches && active.matches('[data-toggle-search]') ? active : null);
     searchOverlay.classList.add('open');
     searchOverlay.setAttribute('aria-hidden', 'false');
     document.documentElement.classList.add('search-open');

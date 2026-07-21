@@ -37,6 +37,7 @@ USER_AGENT = "hugo-akina-starter-wordpress-sync/1.0"
 WP_ID_RE = re.compile(r"(?m)^wp_id\s*(?:=|:)\s*[\"']?(\d+)[\"']?\s*$")
 COMMENT_COUNT_RE = re.compile(r"(?m)^comment_count\s*(?:=|:)\s*[\"']?(\d+)[\"']?\s*$")
 VIEWS_RE = re.compile(r"(?m)^views\s*(?:=|:)\s*[\"']?(\d+)[\"']?\s*$")
+PRUNE_MAX_FRACTION = 0.25
 
 
 def env_first(*names: str) -> str:
@@ -436,22 +437,14 @@ def sync_posts(
     now = datetime.now(timezone.utc).isoformat()
     incremental = not args.all and args.post_id is None
     post_state = state.setdefault("posts", {})
-    bootstrap = incremental and not newest_modified and not post_state
 
     for post in posts:
         post_id = int(post.get("id") or 0)
-        if not post_id:
+        if post_id <= 0:
             continue
         path = post_path(content_dir, post, existing)
         seen_modified = modified_gmt(post)
         previous = post_state.get(str(post_id), {})
-        if bootstrap and path.exists():
-            post_state[str(post_id)] = {"path": display_path(path), "modified_gmt": seen_modified, "synced_at": now}
-            if seen_modified and seen_modified > newest_modified:
-                newest_modified = seen_modified
-            if not args.quiet:
-                print(f"bootstrap unchanged {display_path(path)}")
-            continue
         if incremental and path.exists() and isinstance(previous, dict) and previous.get("modified_gmt") == seen_modified:
             if not args.quiet:
                 print(f"unchanged {display_path(path)}")
@@ -529,6 +522,26 @@ def prune_missing_posts(
     return changed
 
 
+def validate_prune(posts: list[dict[str, Any]], args: argparse.Namespace) -> None:
+    if not args.prune or args.dry_run:
+        return
+    if not posts:
+        raise RuntimeError("refusing to prune from an empty WordPress API result")
+    content_dir = Path(args.content_dir)
+    if not content_dir.is_absolute():
+        content_dir = ROOT / content_dir
+    current_ids = {int(post.get("id") or 0) for post in posts if int(post.get("id") or 0) > 0}
+    if not current_ids:
+        raise RuntimeError("refusing to prune because the WordPress API result contains no valid post IDs")
+    existing = existing_post_paths(content_dir)
+    delete_count = sum(post_id not in current_ids for post_id in existing)
+    large = delete_count > 0 and delete_count / max(len(existing), 1) > PRUNE_MAX_FRACTION
+    if large and not getattr(args, "force_prune", False):
+        raise RuntimeError(
+            f"refusing to prune {delete_count} of {len(existing)} synchronized posts; review with --dry-run and repeat with --force-prune"
+        )
+
+
 def run_command(command: str) -> int:
     try:
         return subprocess.run(shlex.split(command), cwd=ROOT, check=False).returncode
@@ -586,6 +599,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--state-file", default=str(DEFAULT_STATE.relative_to(ROOT)), help="sync state file; default: .wordpress-sync-state.json")
     parser.add_argument("--skip-comment-count", action="store_true", help="do not query wp/v2/comments for comment totals")
     parser.add_argument("--prune", action="store_true", help="with --all, remove local wp_id posts missing from this API result")
+    parser.add_argument("--force-prune", action="store_true", help="allow a large prune after reviewing a dry run")
     parser.add_argument("--dry-run", action="store_true", help="fetch and compare posts without writing files or state")
     parser.add_argument("--quiet", action="store_true", help="only print warnings and errors")
 
@@ -595,7 +609,7 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument("--post-id", type=int, help="sync one WordPress post ID")
 
     parser.add_argument("--localize-assets", action="store_true", help="run scripts/localize_remote_assets.py after changed posts are written")
-    parser.add_argument("--localize-command", default=f"{shlex.quote(sys.executable)} scripts/localize_remote_assets.py --best-effort", help="asset localization command used by --localize-assets")
+    parser.add_argument("--localize-command", default=f"{shlex.quote(sys.executable)} scripts/localize_remote_assets.py --best-effort --target synchronized-posts", help="asset localization command used by --localize-assets")
     parser.add_argument("--build", action="store_true", help="run Hugo after changed posts are written")
     parser.add_argument("--build-always", action="store_true", help="run --localize-assets/--build even when no post changed")
     parser.add_argument("--hugo-command", default=os.environ.get("HUGO_COMMAND", "hugo --minify --cleanDestinationDir"), help="Hugo build command used by --build")
@@ -624,6 +638,7 @@ def main() -> int:
         posts = fetch_posts(site_url, auth, args, state)
         if not args.quiet:
             print(f"fetched {len(posts)} post(s)")
+        validate_prune(posts, args)
         changed = sync_posts(posts, site_url, auth, args, state)
         changed += prune_missing_posts(posts, args, state)
         if args.dry_run:

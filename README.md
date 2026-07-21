@@ -521,13 +521,15 @@ scripts/localize_remote_assets.py
 
 1. 从 WordPress 后台导出 WXR XML。
 2. 把 XML 临时放到项目根目录。
-3. 运行 `python3 scripts/import_wordpress.py wordpress-export.xml --replace-existing`。不加 `--replace-existing` 时，脚本会拒绝覆盖已有文章和页面。
+3. 运行 `python3 scripts/import_wordpress.py wordpress-export.xml --replace-existing`。不加 `--replace-existing` 时，脚本会拒绝覆盖已有文章和页面。脚本会先暂存和校验全部输出，再以事务方式替换文章、页面和评论数据；失败时会回滚。
 4. 检查生成的 `content/posts/`、`content/page/` 和 `data/comments.json`。
 5. 使用 `scripts/localize_remote_assets.py` 本地化会自动加载的远程资源。
 6. 构建并检查页面。
 7. 不要把原始 XML、SQL、压缩包等私有迁移文件提交到 GitHub。
 
-`.gitignore` 已默认忽略 `*.xml`、`*.sql`、`*.zip` 等迁移文件。
+没有已发布文章或页面的 WXR 默认会被拒绝，只有确认需要空导入时才添加 `--allow-empty`。导入脚本不会删除原始 WXR 文件。
+
+`.gitignore` 已默认忽略 `*.xml`、`*.sql`、`*.zip` 以及导入暂存和备份目录等迁移文件。
 
 ## WordPress 定时同步
 
@@ -641,7 +643,9 @@ WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api
 
 单篇 `--post-id` 调试不会推进全局增量游标。资源本地化或构建失败时，状态文件会记录待重试动作，下次运行自动重试。
 
-首次增量同步且状态文件不存在时，已有 `wp_id` 文件只登记状态，不会批量重写；只创建源站新增而本地缺失的文章。需要重新比较全部旧文章时使用全量同步。
+首次增量同步且状态文件不存在时，脚本也会渲染并比较已有 `wp_id` 文件，只有内容不同时才重写。同步触发的资源本地化仅改写这些同步文章，不会改写 `content/page/` 或普通手工文章。
+
+正式 `--all --prune` 会拒绝空结果、没有有效文章 ID 的结果，以及删除量超过现有同步文章 25% 的操作；必须在 dry run 审核后增加 `--force-prune`。资源下载只允许解析到公网地址的 HTTP(S) URL，连接会固定到已验证的地址，跳转会重新验证，并以流式方式限制为 25 MiB；异常状态和明显的 HTML 响应会保留为未本地化外链。
 
 ### 交互式同步管理
 

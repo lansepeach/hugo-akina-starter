@@ -47,10 +47,10 @@ def toml_array(values: list[str]) -> str:
     return "[" + ", ".join(toml_string(v) for v in values if v) + "]"
 
 
-def filename(value: str) -> str:
+def filename(value: str, fallback: str = "untitled") -> str:
     value = unquote(value).strip().lower()
     value = re.sub(r"[^0-9a-zA-Z._-]+", "-", value).strip("-._")
-    return value or "untitled"
+    return value or fallback
 
 
 def parse_date(value: str) -> str:
@@ -145,10 +145,60 @@ def write_file(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def remove_path(path: Path) -> None:
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path)
+    elif path.exists() or path.is_symlink():
+        path.unlink()
+
+
+def replace_transactionally(replacements: list[tuple[Path, Path]], backup: Path) -> None:
+    if backup.exists():
+        raise RuntimeError(f"recovery backup already exists: {backup}; restore or remove it before importing")
+    backup.mkdir(parents=True)
+    backed_up: list[tuple[Path, Path]] = []
+    installed: list[Path] = []
+    keep_backup = False
+    try:
+        for _, target in replacements:
+            if not target.exists():
+                continue
+            backup_path = backup / target.relative_to(ROOT)
+            backup_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(target), str(backup_path))
+            backed_up.append((target, backup_path))
+
+        for source, target in replacements:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(source), str(target))
+            installed.append(target)
+    except Exception as install_error:
+        rollback_errors: list[str] = []
+        for target in reversed(installed):
+            try:
+                remove_path(target)
+            except Exception as exc:
+                rollback_errors.append(f"remove {target}: {exc}")
+        for target, backup_path in reversed(backed_up):
+            try:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(backup_path), str(target))
+            except Exception as exc:
+                rollback_errors.append(f"restore {target}: {exc}")
+        if rollback_errors:
+            keep_backup = True
+            raise RuntimeError("import failed and rollback was incomplete: " + "; ".join(rollback_errors)) from install_error
+        raise
+    finally:
+        if not keep_backup:
+            shutil.rmtree(backup, ignore_errors=True)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Import a WordPress WXR export into Hugo.")
     parser.add_argument("xml", nargs="?", type=Path, default=XML)
     parser.add_argument("--replace-existing", action="store_true", help="replace existing content/posts and content/page after a successful import")
+    parser.add_argument("--allow-empty", action="store_true", help="allow an export with no published posts or pages")
     return parser.parse_args()
 
 
@@ -159,7 +209,11 @@ def main() -> int:
         print(f"missing export: {xml_path}", file=sys.stderr)
         return 1
 
-    tree = ET.parse(xml_path)
+    try:
+        tree = ET.parse(xml_path)
+    except ET.ParseError as exc:
+        print(f"invalid WXR XML: {exc}", file=sys.stderr)
+        return 1
     channel = tree.getroot().find("channel")
     if channel is None:
         print("invalid WXR export", file=sys.stderr)
@@ -171,112 +225,135 @@ def main() -> int:
         print("refusing to replace existing content; rerun with --replace-existing", file=sys.stderr)
         return 1
     staging = ROOT / ".wordpress-import-staging"
+    backup = ROOT / ".wordpress-import-backup"
+    if backup.exists():
+        print(f"refusing import because a recovery backup exists: {backup}", file=sys.stderr)
+        return 1
     shutil.rmtree(staging, ignore_errors=True)
-    posts_dir = staging / "posts"
-    pages_dir = staging / "page"
-    data_dir = staging / "data"
-    posts_dir.mkdir(parents=True)
-    pages_dir.mkdir(parents=True)
-    data_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        posts_dir = staging / "posts"
+        pages_dir = staging / "page"
+        data_dir = staging / "data"
+        posts_dir.mkdir(parents=True)
+        pages_dir.mkdir(parents=True)
+        data_dir.mkdir(parents=True, exist_ok=True)
 
-    items = channel.findall("item")
-    attachments: dict[str, str] = {}
-    for item in items:
-        if child(item, "wp:post_type") == "attachment":
-            attachments[child(item, "wp:post_id")] = child(item, "wp:attachment_url")
+        items = channel.findall("item")
+        attachments: dict[str, str] = {}
+        for item in items:
+            if child(item, "wp:post_type") == "attachment":
+                attachments[child(item, "wp:post_id")] = child(item, "wp:attachment_url")
 
-    comments_data: dict[str, list[dict[str, str]]] = {}
-    imported_posts = imported_pages = 0
+        comments_data: dict[str, list[dict[str, str]]] = {}
+        generated_paths: set[Path] = set()
+        imported_posts = imported_pages = 0
 
-    for item in items:
-        post_type = child(item, "wp:post_type")
-        status = child(item, "wp:status")
-        if post_type not in {"post", "page"} or status != "publish":
-            continue
+        for item in items:
+            post_type = child(item, "wp:post_type")
+            status = child(item, "wp:status")
+            if post_type not in {"post", "page"} or status != "publish":
+                continue
 
-        post_id = child(item, "wp:post_id")
-        title = child(item, "title") or f"Untitled {post_id}"
-        slug = child(item, "wp:post_name") or post_id
-        date = parse_date(child(item, "wp:post_date") or child(item, "pubDate"))
-        meta = postmeta(item)
-        categories = taxonomies(item, "category")
-        tags = taxonomies(item, "post_tag")
-        comments = collect_comments(item)
-        comments_data[post_id] = comments
-        content = clean_content(child(item, "content:encoded"))
-        excerpt = clean_content(child(item, "excerpt:encoded"))
-        thumbnail = attachments.get(meta.get("_thumbnail_id", ""), "")
+            post_id = child(item, "wp:post_id")
+            if not post_id.isdigit() or int(post_id) <= 0:
+                print(f"invalid WordPress post ID for published {post_type}: {post_id or '(missing)'}", file=sys.stderr)
+                return 1
+            title = child(item, "title") or f"Untitled {post_id}"
+            slug = child(item, "wp:post_name") or post_id
+            date = parse_date(child(item, "wp:post_date") or child(item, "pubDate"))
+            meta = postmeta(item)
+            categories = taxonomies(item, "category")
+            tags = taxonomies(item, "post_tag")
+            comments = collect_comments(item)
+            comments_data[post_id] = comments
+            content = clean_content(child(item, "content:encoded"))
+            excerpt = clean_content(child(item, "excerpt:encoded"))
+            thumbnail = attachments.get(meta.get("_thumbnail_id", ""), "")
 
-        if post_type == "post":
-            fields = {
-                "title": title,
-                "date": date,
-                "draft": False,
-                "type": "posts",
-                "url": f"/archives/{post_id}/",
-                "slug": post_id,
-                "wp_id": int(post_id or 0),
-                "author": child(item, "dc:creator") or "wordpress",
-                "categories": categories,
-                "tags": tags,
-                "featured_image": thumbnail,
-                "views": int(meta.get("views", "0") or 0),
-                "comment_count": len(comments),
-                "excerpt": excerpt,
-            }
-            path = posts_dir / f"{post_id}-{filename(slug)}.md"
-            imported_posts += 1
-        else:
-            page_slug = filename(slug)
-            url_slug = {
-                "i-m-%e8%93%9d%e8%89%b2peach": "about",
-                "i-m-peach": "about",
-                "im-peach": "about",
-            }.get(page_slug, page_slug)
-            fields = {
-                "title": title,
-                "date": date,
-                "draft": False,
-                "type": "page",
-                "url": f"/{url_slug}/",
-                "slug": url_slug,
-                "wp_id": int(post_id or 0),
-                "comment_count": len(comments),
-            }
-            if url_slug == "archives":
-                fields["layout"] = "archives"
-                content = ""
-            path = pages_dir / f"{url_slug}.md"
-            imported_pages += 1
+            if post_type == "post":
+                fields = {
+                    "title": title,
+                    "date": date,
+                    "draft": False,
+                    "type": "posts",
+                    "url": f"/archives/{post_id}/",
+                    "slug": post_id,
+                    "wp_id": int(post_id or 0),
+                    "author": child(item, "dc:creator") or "wordpress",
+                    "categories": categories,
+                    "tags": tags,
+                    "featured_image": thumbnail,
+                    "views": int(meta.get("views", "0") or 0),
+                    "comment_count": len(comments),
+                    "excerpt": excerpt,
+                }
+                path = posts_dir / f"{post_id}-{filename(slug)}.md"
+                imported_posts += 1
+            else:
+                page_slug = filename(slug, f"untitled-{post_id or '0'}")
+                url_slug = {
+                    "i-m-%e8%93%9d%e8%89%b2peach": "about",
+                    "i-m-peach": "about",
+                    "im-peach": "about",
+                }.get(page_slug, page_slug)
+                fields = {
+                    "title": title,
+                    "date": date,
+                    "draft": False,
+                    "type": "page",
+                    "url": f"/{url_slug}/",
+                    "slug": url_slug,
+                    "wp_id": int(post_id or 0),
+                    "comment_count": len(comments),
+                }
+                if url_slug == "archives":
+                    fields["layout"] = "archives"
+                    content = ""
+                path = pages_dir / f"{url_slug}.md"
+                imported_pages += 1
 
-        write_file(path, frontmatter(fields) + content)
+            if path in generated_paths:
+                print(f"duplicate generated path: {path.relative_to(staging)}", file=sys.stderr)
+                return 1
+            generated_paths.add(path)
+            write_file(path, frontmatter(fields) + content)
 
-    # Ensure core utility pages exist even if the WordPress export did not include them.
-    archive_path = pages_dir / "archives.md"
-    if not archive_path.exists():
-        write_file(
-            archive_path,
-            frontmatter({"title": "归档", "date": "1970-01-01T00:00:00+08:00", "draft": False, "type": "page", "url": "/archives/", "layout": "archives"}),
-        )
+        if imported_posts + imported_pages == 0 and not args.allow_empty:
+            print("refusing empty import; no published posts or pages found (use --allow-empty to override)", file=sys.stderr)
+            return 1
 
-    sitemap_path = pages_dir / "ditu.md"
-    if not sitemap_path.exists():
-        write_file(
-            sitemap_path,
-            frontmatter({"title": "网站地图", "date": "1970-01-01T00:00:00+08:00", "draft": False, "type": "page", "url": "/ditu/", "layout": "ditu"}),
-        )
+        # Ensure core utility pages exist even if the WordPress export did not include them.
+        archive_path = pages_dir / "archives.md"
+        if not archive_path.exists():
+            write_file(
+                archive_path,
+                frontmatter({"title": "归档", "date": "1970-01-01T00:00:00+08:00", "draft": False, "type": "page", "url": "/archives/", "layout": "archives"}),
+            )
 
-    write_file(data_dir / "comments.json", json.dumps(comments_data, ensure_ascii=False, indent=2))
-    for source, target in ((posts_dir, target_posts), (pages_dir, target_pages)):
-        if target.exists():
-            shutil.rmtree(target)
-        shutil.move(str(source), str(target))
-    target_data = ROOT / "data"
-    target_data.mkdir(parents=True, exist_ok=True)
-    shutil.move(str(data_dir / "comments.json"), str(target_data / "comments.json"))
-    shutil.rmtree(staging, ignore_errors=True)
-    print(f"Imported {imported_posts} posts and {imported_pages} pages")
-    return 0
+        sitemap_path = pages_dir / "ditu.md"
+        if not sitemap_path.exists():
+            write_file(
+                sitemap_path,
+                frontmatter({"title": "网站地图", "date": "1970-01-01T00:00:00+08:00", "draft": False, "type": "page", "url": "/ditu/", "layout": "ditu"}),
+            )
+
+        staged_comments = data_dir / "comments.json"
+        write_file(staged_comments, json.dumps(comments_data, ensure_ascii=False, indent=2))
+        replacements = [
+            (posts_dir, target_posts),
+            (pages_dir, target_pages),
+            (staged_comments, ROOT / "data" / "comments.json"),
+        ]
+        try:
+            replace_transactionally(replacements, backup)
+        except Exception as exc:
+            print(f"failed to install import: {exc}", file=sys.stderr)
+            return 1
+
+        print(f"Imported {imported_posts} posts and {imported_pages} pages")
+        return 0
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
 
 
 if __name__ == "__main__":

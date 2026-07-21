@@ -18,6 +18,8 @@ Thumbs.db
 .wordpress-sync-state.json
 .wordpress-sync-state.json.lock
 /logs/
+/.wordpress-import-staging/
+/.wordpress-import-backup/
 __pycache__/
 *.pyc
 

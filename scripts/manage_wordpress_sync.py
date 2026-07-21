@@ -41,11 +41,8 @@ def current_branch() -> str:
     return run(["git", "branch", "--show-current"], capture=True).stdout.strip()
 
 
-def unrelated_worktree_changes() -> list[str]:
-    changed = run(["git", "diff", "--name-only"], capture=True).stdout.splitlines()
-    changed.extend(run(["git", "diff", "--cached", "--name-only"], capture=True).stdout.splitlines())
-    changed.extend(run(["git", "ls-files", "--others", "--exclude-standard"], capture=True).stdout.splitlines())
-    return sorted({path for path in changed if not any(path == allowed or path.startswith(allowed + "/") for allowed in SYNC_PATHS)})
+def worktree_changes() -> list[str]:
+    return run(["git", "status", "--porcelain", "--untracked-files=all"], capture=True).stdout.splitlines()
 
 
 def default_commit_message() -> str:
@@ -203,10 +200,10 @@ def main() -> int:
         if args.command == "prune-preview":
             return synchronize(full=True, prune=True, dry_run=True)
         if args.command == "auto":
-            unrelated = unrelated_worktree_changes()
-            if unrelated:
-                print("error: 自动同步已中止，存在同步目录外的未提交文件：", file=sys.stderr)
-                print("\n".join(unrelated), file=sys.stderr)
+            changes = worktree_changes()
+            if changes:
+                print("error: 自动同步已中止，工作区必须完全干净（包括未跟踪文件）：", file=sys.stderr)
+                print("\n".join(changes), file=sys.stderr)
                 return 1
             result = synchronize()
             return result if result or not args.auto_push else publish(args.remote, args.branch, args.message, True, False)

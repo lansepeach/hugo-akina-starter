@@ -223,7 +223,7 @@ WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api
 
 同步流程调用本地化脚本时使用 `--best-effort`：失效外链仍会输出警告，但会继续构建 Hugo。若本地化真正异常或 Hugo 构建失败，待处理动作仍会保存并在下次重试。
 
-首次增量同步且没有状态文件时，已有 `wp_id` 文件只登记源站修改时间，不会批量覆盖；源站新增而本地缺失的文章会正常创建。使用 `--all` 可强制重新比较全部文章。
+首次增量同步且没有状态文件时，已有 `wp_id` 文件也会按 REST 数据渲染和比较，只有内容不同时才覆盖；源站新增而本地缺失的文章会正常创建。
 
 ## 交互式管理和 Git 推送
 
@@ -234,7 +234,7 @@ export WORDPRESS_URL="https://你的WordPress域名"
 python3 scripts/manage_wordpress_sync.py
 ```
 
-菜单可以分两步操作：先选择同步、本地化和构建，再选择提交并推送；也可以一次完成。人工提交会预览并确认全部项目变更，cron 自动推送只暂存同步相关目录。自动任务发现同步目录外的暂存、未暂存或未跟踪文件时会在构建前停止；指定推送分支与当前检出分支不一致时也会拒绝推送。
+菜单可以分两步操作：先选择同步、本地化和构建，再选择提交并推送；也可以一次完成。人工提交会预览并确认全部项目变更，cron 自动推送只暂存同步相关目录。`auto` 自动任务要求整个工作区完全干净，任何已暂存、未暂存或未跟踪文件都会在同步前使任务停止；人工同步和发布流程仍可正常使用。指定推送分支与当前检出分支不一致时也会拒绝推送。
 
 非交互示例：
 
@@ -272,7 +272,7 @@ WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api
 WORDPRESS_URL="https://你的WordPress域名" python3 scripts/sync_wordpress_api.py --all --prune --build
 ```
 
-`--prune` 只能和 `--all` 一起使用，只删除 `content/posts/` 中包含 `wp_id` 且未出现在完整 API 结果里的文件。它不会删除普通 Hugo 文章。
+`--prune` 只能和 `--all` 一起使用，只删除 `content/posts/` 中包含 `wp_id` 且未出现在完整 API 结果里的文件。它不会删除普通 Hugo 文章。正式清理会拒绝空结果、没有有效文章 ID 的结果，以及删除超过现有同步文章 25% 的操作；必须审核 dry run 后显式增加 `--force-prune`。dry run 可以预览这些情况，但不会删除文件。
 
 ## URL 模式
 
@@ -362,6 +362,7 @@ content/posts/wp-ID.md
 | `--state-file` | 同步状态文件，默认 `.wordpress-sync-state.json`。 |
 | `--skip-comment-count` | 跳过评论数量查询；已有文件会保留原评论数。 |
 | `--prune` | 必须配合 `--all`，清理完整 API 结果中不存在的 `wp_id` 文章。 |
+| `--force-prune` | 审核 dry run 后允许大批量清理；不能绕过空 API 结果保护。 |
 | `--dry-run` | 只测试，不写文章文件和状态文件。 |
 | `--quiet` | 减少输出。 |
 | `--all` | 同步全部符合条件的文章。 |
@@ -371,6 +372,10 @@ content/posts/wp-ID.md
 | `--build` | 同步后运行 Hugo 构建。 |
 | `--build-always` | 即使没有文章变化，也执行资源本地化和构建。 |
 | `--hugo-command` | 覆盖默认 Hugo 构建命令。 |
+
+同步流程调用本地化脚本时会使用 `--target synchronized-posts`，只扫描含 `wp_id` 的 `content/posts/` 文件，不会重写 `content/page/`、普通手工文章或 CSS。直接运行本地化脚本时可用默认的 `--target all` 处理迁移资源。
+
+远程资源下载只接受 HTTP(S)，并拒绝解析到回环、私网、链路本地或保留地址的目标；HTTP 跳转地址也执行相同检查。下载以流式方式进行，单个文件上限为 25 MiB，HTML Content-Type 或明显的 HTML 内容会被拒绝。`--best-effort` 下这些失败会保留原 URL 并继续处理其他资源。
 
 ## 环境变量
 
